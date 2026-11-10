@@ -1,0 +1,79 @@
+<main class="eleves-container">
+
+  <header class="page-header">
+    <div>
+      <h1>Gestion des élèves</h1>
+      <p>Consultez et gérez les élèves enregistrés dans Sama Tur.</p>
+    </div>
+
+    <span class="total-eleves">
+      {{ eleves.length }} élève(s)
+    </span>
+  </header>
+
+  <section class="table-section">
+
+    <p *ngIf="loading" class="loading">
+      Chargement des élèves...
+    </p>
+
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+      <button type="button" (click)="chargerEleves()">
+        Réessayer
+      </button>
+    </div>
+
+    <div *ngIf="!loading && !errorMessage && eleves.length === 0"
+         class="empty-message">
+      Aucun élève enregistré.
+    </div>
+
+    <div class="table-wrapper"
+         *ngIf="!loading && !errorMessage && eleves.length > 0">
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom et prénom</th>
+            <th>Sexe</th>
+            <th>Date de naissance</th>
+            <th>Classe</th>
+            <th>École</th>
+            <th>Commune de naissance</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let eleve of eleves">
+            <td>{{ eleve.id }}</td>
+
+            <td>
+              <strong>{{ eleve.nom }} {{ eleve.prenom }}</strong>
+              <small>
+                INE : {{ eleve.numeroIne || 'Non renseigné' }}
+              </small>
+            </td>
+
+            <td>{{ eleve.sexe === 'M' ? 'Masculin' : 'Féminin' }}</td>
+
+            <td>
+              {{ eleve.dateNaissance | date:'dd/MM/yyyy' }}
+              <small *ngIf="eleve.dateNaissancePresumee">
+                Date présumée
+              </small>
+            </td>
+
+            <td>{{ eleve.classe }}</td>
+
+            <td>{{ eleve.ecole.nom }}</td>
+
+            <td>{{ eleve.communeNaissance.nom }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </section>
+</main>

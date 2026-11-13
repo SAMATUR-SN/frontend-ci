@@ -1,3 +1,4 @@
+
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
@@ -14,8 +15,36 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client
   },
   {
-  path: 'eleves',
-  renderMode: RenderMode.Client
+    path: 'eleves',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'eleves/nouveau',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'eleves/import',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'eleves/:id',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'dossiers',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'dossiers/nouveau',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'dossiers/:id',
+    renderMode: RenderMode.Client
+  },
+  {
+    path: 'alertes',
+    renderMode: RenderMode.Client
   },
   {
     path: '**',

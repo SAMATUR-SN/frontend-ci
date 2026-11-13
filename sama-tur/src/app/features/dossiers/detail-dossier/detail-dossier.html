@@ -1,0 +1,240 @@
+
+<div class="page-container">
+
+  <div class="page-header">
+    <div>
+      <a routerLink="/dossiers" class="back-link">
+        ← Retour aux dossiers
+      </a>
+
+      <h1>Détail du dossier</h1>
+      <p>Consultation des informations du dossier d'état civil</p>
+    </div>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="chargement" class="message-info">
+    Chargement du dossier...
+  </div>
+
+  <!-- Erreur -->
+  <div *ngIf="messageErreur" class="message-error">
+    {{ messageErreur }}
+  </div>
+
+  <!-- Informations du dossier -->
+  <div *ngIf="dossier as d" class="details-container">
+
+    <div class="summary-card">
+      <div>
+        <span class="label">Référence du dossier</span>
+        <h2>{{ d.reference }}</h2>
+      </div>
+
+      <div>
+        <span class="label">Étape actuelle</span>
+        <span class="status-badge">
+          {{ d.etape }}
+        </span>
+      </div>
+    </div>
+    <div class="action-card">
+      <div>
+        <h3>Faire avancer le dossier</h3>
+        <p>
+          Demander au système de passer le dossier à la prochaine étape autorisée.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn-advance"
+        (click)="avancerDossier()"
+        [disabled]="avancementEnCours">
+        {{ avancementEnCours ? 'Traitement...' : 'Avancer le dossier →' }}
+      </button>
+    </div>
+
+<div *ngIf="messageSucces" class="message-success">
+  {{ messageSucces }}
+</div>
+
+    <!-- Élève -->
+    <section class="detail-card">
+      <h3>Informations de l'élève</h3>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span>Nom</span>
+          <strong>{{ d.eleve.nom }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Prénom</span>
+          <strong>{{ d.eleve.prenom }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Sexe</span>
+          <strong>{{ d.eleve.sexe }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Date de naissance</span>
+          <strong>{{ d.eleve.dateNaissance }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Classe</span>
+          <strong>{{ d.eleve.classe }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>École</span>
+          <strong>{{ d.eleve.ecole?.nom || 'Non renseignée' }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Détection et certificat -->
+    <section class="detail-card">
+      <h3>Détection et certificat</h3>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span>Date de détection</span>
+          <strong>{{ d.dateDetection || 'Non renseignée' }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Numéro du certificat</span>
+          <strong>{{ d.numeroCertificat || 'Non renseigné' }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Date du certificat</span>
+          <strong>{{ d.dateCertificat || 'Non renseignée' }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Centre d'état civil</span>
+          <strong>
+            {{ d.centreEtatCivil?.nom || 'Non renseigné' }}
+          </strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Jugement -->
+    <section class="detail-card">
+      <h3>Informations du jugement</h3>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span>Numéro du jugement</span>
+          <strong>{{ d.numeroJugement || 'Non renseigné' }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Date du jugement</span>
+          <strong>{{ d.dateJugement || 'Non renseignée' }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Type d'audience</span>
+          <strong>{{ d.typeAudience || 'Non renseigné' }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Tribunal</span>
+          <strong>
+            {{ d.tribunalInstance?.nom || 'Non renseigné' }}
+          </strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Transcription et remise -->
+    <section class="detail-card">
+      <h3>Transcription et remise de l'acte</h3>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span>Numéro de l'acte</span>
+          <strong>{{ d.numeroActe || 'Non renseigné' }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Date de transcription</span>
+          <strong>{{ d.dateTranscription || 'Non renseignée' }}</strong>
+        </div>
+
+        <div class="info-item">
+          <span>Date de remise</span>
+          <strong>{{ d.dateRemise || 'Non renseignée' }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Historique du dossier -->
+<section class="detail-card history-card">
+  <h3>Historique des opérations</h3>
+
+  <div *ngIf="chargementHistorique" class="message-info">
+    Chargement de l'historique...
+  </div>
+
+  <div *ngIf="erreurHistorique" class="message-error">
+    {{ erreurHistorique }}
+    <button
+      type="button"
+      (click)="chargerHistorique(dossier!.id)">
+      Réessayer
+    </button>
+  </div>
+
+  <div
+    *ngIf="!chargementHistorique &&
+           !erreurHistorique &&
+           historique.length === 0"
+    class="empty-history">
+    Aucun historique disponible pour ce dossier.
+  </div>
+
+  <div
+    class="history-list"
+    *ngIf="!chargementHistorique && historique.length > 0">
+
+    <article class="history-item" *ngFor="let evenement of historique">
+
+      <div class="history-marker"></div>
+
+      <div class="history-content">
+        <div class="history-top">
+          <strong>
+            {{ evenement.etapeDepart || 'Début' }}
+            →
+            {{ evenement.etapeArrivee }}
+          </strong>
+
+          <span class="history-date">
+            {{ evenement.dateHeure | date:'dd/MM/yyyy à HH:mm' }}
+          </span>
+        </div>
+
+        <div class="history-meta">
+          <span>Rôle : {{ evenement.roleAuteur }}</span>
+          <span>Utilisateur ID : {{ evenement.auteurId }}</span>
+        </div>
+
+        <p class="history-comment" *ngIf="evenement.commentaire">
+          {{ evenement.commentaire }}
+        </p>
+      </div>
+
+    </article>
+  </div>
+</section>
+
+  </div>
+</div>

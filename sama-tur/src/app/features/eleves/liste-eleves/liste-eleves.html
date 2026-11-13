@@ -1,8 +1,18 @@
+
 <main class="eleves-container">
 
   <header class="page-header">
     <div>
       <h1>Gestion des élèves</h1>
+      <button
+        type="button"
+        class="btn-ajouter-eleve"
+        [routerLink]="['/eleves/nouveau']">
+        + Ajouter un élève
+    </button>
+    <a routerLink="/eleves/import" class="import-link">
+      Importer un CSV
+    </a>
       <p>Consultez et gérez les élèves enregistrés dans Sama Tur.</p>
     </div>
 
@@ -29,24 +39,103 @@
       Aucun élève enregistré.
     </div>
 
-    <div class="table-wrapper"
+    <!-- BARRE DE RECHERCHE ET FILTRE -->
+    <div class="filtres-eleves"
          *ngIf="!loading && !errorMessage && eleves.length > 0">
 
+      <div class="champ-recherche">
+        <label for="recherche">Rechercher un élève</label>
+
+        <input
+          id="recherche"
+          type="text"
+          placeholder="Nom ou prénom..."
+          [value]="recherche"
+          (input)="recherche = $any($event.target).value"
+        />
+      </div>
+
+      <div class="champ-filtre">
+        <label for="classe">Filtrer par classe</label>
+
+        <select
+          id="classe"
+          [value]="classeSelectionnee"
+          (change)="classeSelectionnee = $any($event.target).value">
+
+          <option value="">Toutes les classes</option>
+
+          <option *ngFor="let classe of classesDisponibles"
+                  [value]="classe">
+            {{ classe }}
+          </option>
+
+        </select>
+      </div>
+
+      <div class="champ-filtre">
+        <label for="ecole">Filtrer par école</label>
+
+        <select
+          id="ecole"
+          [value]="ecoleSelectionnee"
+          (change)="ecoleSelectionnee = $any($event.target).value">
+
+          <option value="">Toutes les écoles</option>
+
+          <option *ngFor="let ecole of ecolesDisponibles"
+                  [value]="ecole.id">
+            {{ ecole.nom }}
+          </option>
+
+        </select>
+      </div>
+
+      <div class="champ-action">
+      <button
+        type="button"
+        class="btn-reinitialiser"
+        (click)="reinitialiserFiltres()">
+        Réinitialiser les filtres
+      </button>
+    </div>
+
+    </div>
+
+    <!-- NOMBRE DE RÉSULTATS -->
+    <p *ngIf="!loading && !errorMessage && eleves.length > 0"
+       class="nombre-resultats">
+      {{ elevesFiltres.length }} résultat(s) trouvé(s)
+    </p>
+
+    <!-- AUCUN RÉSULTAT -->
+    <div *ngIf="!loading && !errorMessage &&
+                eleves.length > 0 && elevesFiltres.length === 0"
+         class="empty-message">
+      Aucun élève ne correspond à votre recherche.
+    </div>
+
+    <!-- TABLEAU DES ÉLÈVES -->
+    <div class="table-wrapper"
+         *ngIf="!loading && !errorMessage && elevesFiltres.length > 0">
+
       <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nom et prénom</th>
-            <th>Sexe</th>
-            <th>Date de naissance</th>
-            <th>Classe</th>
-            <th>École</th>
-            <th>Commune de naissance</th>
-          </tr>
-        </thead>
+        
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nom et prénom</th>
+          <th>Sexe</th>
+          <th>Date de naissance</th>
+          <th>Classe</th>
+          <th>École</th>
+          <th>Commune de naissance</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
 
         <tbody>
-          <tr *ngFor="let eleve of eleves">
+          <tr *ngFor="let eleve of elevesFiltres">
             <td>{{ eleve.id }}</td>
 
             <td>
@@ -70,10 +159,19 @@
             <td>{{ eleve.ecole.nom }}</td>
 
             <td>{{ eleve.communeNaissance.nom }}</td>
+
+            <td>
+              <a
+                class="btn-voir-dossier"
+                [routerLink]="['/eleves', eleve.id]">
+                Voir le dossier →
+              </a>
+            </td>
           </tr>
         </tbody>
       </table>
 
     </div>
+
   </section>
 </main>

@@ -1,0 +1,275 @@
+
+<main class="ajout-container">
+
+  <!-- EN-TÊTE -->
+  <header class="ajout-header">
+    <div>
+      <button
+        type="button"
+        class="btn-retour"
+        (click)="annuler()">
+        ← Retour à la liste
+      </button>
+
+      <h1>Ajouter un élève</h1>
+      <p>Enregistrez un nouveau dossier scolaire dans Sama Tur.</p>
+    </div>
+  </header>
+
+  <!-- CHARGEMENT DES RÉFÉRENTIELS -->
+  <div *ngIf="chargementReferentiels" class="loading">
+    Chargement des écoles et des communes...
+  </div>
+
+  <!-- ERREUR -->
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <!-- SUCCÈS -->
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+
+  <!-- FORMULAIRE -->
+  <form
+    *ngIf="!chargementReferentiels && !successMessage"
+    [formGroup]="formulaire"
+    (ngSubmit)="enregistrerEleve()"
+    class="formulaire-ajout">
+
+    <!-- INFORMATIONS PERSONNELLES -->
+    <section class="carte-formulaire">
+      <h3>Informations personnelles</h3>
+      <p class="description-section">
+        Renseignez les informations d'identification de l'élève.
+      </p>
+
+      <div class="formulaire-grid">
+
+        <div class="champ">
+          <label for="nom">Nom *</label>
+          <input
+            id="nom"
+            type="text"
+            formControlName="nom"
+            placeholder="Nom de famille">
+
+          <small *ngIf="formulaire.get('nom')?.touched && formulaire.get('nom')?.hasError('required')">
+              Le nom est obligatoire.
+            </small>
+
+            <small *ngIf="formulaire.get('nom')?.touched && formulaire.get('nom')?.hasError('texteVide')">
+              Le nom ne peut pas contenir uniquement des espaces.
+          </small>
+        </div>
+
+        <div class="champ">
+          <label for="prenom">Prénom *</label>
+          <input
+            id="prenom"
+            type="text"
+            formControlName="prenom"
+            placeholder="Prénom de l'élève">
+
+          <small *ngIf="formulaire.get('prenom')?.touched && formulaire.get('prenom')?.hasError('required')">
+              Le prénom est obligatoire.
+            </small>
+
+            <small *ngIf="formulaire.get('prenom')?.touched && formulaire.get('prenom')?.hasError('texteVide')">
+              Le prénom ne peut pas contenir uniquement des espaces.
+          </small>
+        </div>
+
+        <div class="champ">
+          <label for="sexe">Sexe *</label>
+          <select id="sexe" formControlName="sexe">
+            <option value="M">Masculin</option>
+            <option value="F">Féminin</option>
+          </select>
+          <small *ngIf="formulaire.get('sexe')?.touched && formulaire.get('sexe')?.invalid">
+            Veuillez sélectionner un sexe valide.
+          </small>
+        </div>
+
+        <div class="champ">
+          <label for="dateNaissance">Date de naissance *</label>
+          <input
+            id="dateNaissance"
+            type="date"
+            formControlName="dateNaissance">
+
+          <small *ngIf="formulaire.get('dateNaissance')?.touched && formulaire.get('dateNaissance')?.hasError('required')">
+            La date de naissance est obligatoire.
+          </small>
+
+          <small *ngIf="formulaire.get('dateNaissance')?.touched && formulaire.get('dateNaissance')?.hasError('dateFuture')">
+            La date de naissance ne peut pas être dans le futur.
+          </small>
+
+          <small *ngIf="formulaire.get('dateNaissance')?.touched && formulaire.get('dateNaissance')?.hasError('dateInvalide')">
+            Veuillez saisir une date valide.
+          </small>
+        </div>
+
+        <div class="champ">
+          <label for="numeroIne">Numéro INE</label>
+          <input
+            id="numeroIne"
+            type="text"
+            formControlName="numeroIne"
+            placeholder="Numéro INE de l'élève">
+        </div>
+
+        <div class="champ champ-checkbox">
+          <label>
+            <input
+              type="checkbox"
+              formControlName="dateNaissancePresumee">
+            Date de naissance présumée
+          </label>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- INFORMATIONS SCOLAIRES -->
+    <section class="carte-formulaire">
+      <h3>Informations scolaires</h3>
+      <p class="description-section">
+        Précisez l'établissement et la classe de l'élève.
+      </p>
+
+      <div class="formulaire-grid">
+
+        <div class="champ">
+          <label for="ecoleId">Établissement scolaire *</label>
+          <select id="ecoleId" formControlName="ecoleId">
+            <option [ngValue]="null">Sélectionner une école</option>
+
+            <option
+              *ngFor="let ecole of ecoles"
+              [ngValue]="ecole.id">
+              {{ ecole.nom }}
+            </option>
+          </select>
+
+          <small *ngIf="formulaire.get('ecoleId')?.touched && formulaire.get('ecoleId')?.invalid">
+            Veuillez sélectionner une école.
+          </small>
+        </div>
+
+        <div class="champ">
+          <label for="classe">Classe *</label>
+          <input
+            id="classe"
+            type="text"
+            formControlName="classe"
+            placeholder="Exemple : CM2, 6ème, Terminale">
+
+          <small *ngIf="formulaire.get('classe')?.touched && formulaire.get('classe')?.hasError('required')">
+            La classe est obligatoire.
+          </small>
+
+          <small *ngIf="formulaire.get('classe')?.touched && formulaire.get('classe')?.hasError('texteVide')">
+            La classe ne peut pas contenir uniquement des espaces.
+          </small>
+        </div>
+
+        <div class="champ">
+          <label for="communeNaissanceId">Commune de naissance *</label>
+          <select
+            id="communeNaissanceId"
+            formControlName="communeNaissanceId">
+
+            <option [ngValue]="null">Sélectionner une commune</option>
+
+            <option
+              *ngFor="let commune of communes"
+              [ngValue]="commune.id">
+              {{ commune.nom }}
+              <ng-container *ngIf="commune.departement">
+                — {{ commune.departement }}
+              </ng-container>
+            </option>
+          </select>
+
+          <small *ngIf="formulaire.get('communeNaissanceId')?.touched && formulaire.get('communeNaissanceId')?.invalid">
+            Veuillez sélectionner une commune.
+          </small>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- INFORMATIONS FAMILIALES -->
+    <section class="carte-formulaire">
+      <h3>Informations familiales</h3>
+      <p class="description-section">
+        Renseignez les informations relatives aux parents de l'élève.
+      </p>
+
+      <div class="formulaire-grid">
+
+        <div class="champ">
+          <label for="nomPere">Nom du père</label>
+          <input
+            id="nomPere"
+            type="text"
+            formControlName="nomPere"
+            placeholder="Nom et prénom du père">
+        </div>
+
+        <div class="champ">
+          <label for="professionPere">Profession du père</label>
+          <input
+            id="professionPere"
+            type="text"
+            formControlName="professionPere"
+            placeholder="Profession du père">
+        </div>
+
+        <div class="champ">
+          <label for="nomMere">Nom de la mère</label>
+          <input
+            id="nomMere"
+            type="text"
+            formControlName="nomMere"
+            placeholder="Nom et prénom de la mère">
+        </div>
+
+        <div class="champ">
+          <label for="professionMere">Profession de la mère</label>
+          <input
+            id="professionMere"
+            type="text"
+            formControlName="professionMere"
+            placeholder="Profession de la mère">
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ACTIONS -->
+    <div class="actions-formulaire">
+      <button
+        type="button"
+        class="btn-annuler"
+        (click)="annuler()">
+        Annuler
+      </button>
+
+      <button
+        type="submit"
+        class="btn-enregistrer"
+        [disabled]="enregistrementEnCours">
+
+        {{ enregistrementEnCours
+          ? 'Enregistrement...'
+          : 'Enregistrer le dossier' }}
+      </button>
+    </div>
+
+  </form>
+
+</main>

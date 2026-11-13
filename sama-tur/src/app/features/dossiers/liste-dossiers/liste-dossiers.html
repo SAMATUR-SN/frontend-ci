@@ -1,0 +1,110 @@
+
+<div class="page-container">
+
+  <div class="page-header">
+    <div>
+      <h1>Gestion des dossiers</h1>
+      <p>Suivi des dossiers d'état civil des élèves.</p>
+    </div>
+
+    <div class="header-actions">
+      <a routerLink="/dossiers/nouveau" class="btn-new">
+        + Nouveau dossier
+      </a>
+
+      <button type="button" class="btn-refresh"
+              (click)="chargerDossiers()"
+              [disabled]="chargement">
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-card">
+    <div>
+      <span class="stats-label">Total des dossiers</span>
+      <strong>{{ dossiers.length }}</strong>
+    </div>
+  </div>
+
+  <div class="content-card">
+
+    <div class="table-header">
+      <h2>Liste des dossiers</h2>
+      <span>{{ dossiers.length }} dossier(s)</span>
+    </div>
+
+    <div *ngIf="chargement" class="message-info">
+      Chargement des dossiers...
+    </div>
+
+    <div *ngIf="messageErreur" class="message-error">
+      {{ messageErreur }}
+      <button type="button" (click)="chargerDossiers()">
+        Réessayer
+      </button>
+    </div>
+
+    <div *ngIf="!chargement && !messageErreur && dossiers.length === 0"
+         class="empty-state">
+      <h3>Aucun dossier trouvé</h3>
+      <p>Il n'y a actuellement aucun dossier à afficher.</p>
+    </div>
+
+    <div class="table-responsive"
+         *ngIf="!chargement && !messageErreur && dossiers.length > 0">
+
+      <table>
+        <thead>
+          <tr>
+            <th>Référence</th>
+            <th>Élève</th>
+            <th>École</th>
+            <th>Étape actuelle</th>
+            <th>Date de détection</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let dossier of dossiers">
+
+            <td class="reference">
+              {{ dossier.reference }}
+            </td>
+
+            <td>
+              <strong>
+                {{ dossier.eleve.prenom }} {{ dossier.eleve.nom }}
+              </strong>
+            </td>
+
+            <td>
+              {{ dossier.eleve.ecole?.nom || 'Non renseignée' }}
+            </td>
+
+            <td>
+              <span class="status-badge">
+                {{ dossier.etape }}
+              </span>
+            </td>
+
+            <td>
+              {{ dossier.dateDetection || 'Non renseignée' }}
+            </td>
+
+            <td>
+              <a class="btn-detail"
+                 [routerLink]="['/dossiers', dossier.id]">
+                Consulter
+              </a>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+
+  </div>
+</div>

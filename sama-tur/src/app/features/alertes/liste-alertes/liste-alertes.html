@@ -1,0 +1,130 @@
+<div class="page-container">
+
+  <div class="page-header">
+    <div>
+      <h1>Gestion des alertes</h1>
+      <p>Surveillance des retards dans le traitement des dossiers.</p>
+    </div>
+
+    <button
+      class="btn-verify"
+      type="button"
+      (click)="verifierAlertes()"
+      [disabled]="verificationEnCours">
+      {{ verificationEnCours ? 'Vérification...' : 'Vérifier les retards' }}
+    </button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stats-card">
+      <span>Total des alertes</span>
+      <strong>{{ alertes.length }}</strong>
+    </div>
+
+    <div class="stats-card">
+      <span>Alertes non résolues</span>
+      <strong class="warning-number">{{ alertesNonResolues }}</strong>
+    </div>
+
+    <div class="stats-card">
+      <span>Alertes résolues</span>
+      <strong class="success-number">
+        {{ alertes.length - alertesNonResolues }}
+      </strong>
+    </div>
+  </div>
+
+  <div *ngIf="messageErreur" class="message-error">
+    {{ messageErreur }}
+  </div>
+
+  <div *ngIf="messageSucces" class="message-success">
+    {{ messageSucces }}
+  </div>
+
+  <div class="content-card">
+    <div class="table-header">
+      <h2>Liste des alertes</h2>
+      <button type="button" class="btn-refresh"
+              (click)="chargerAlertes()"
+              [disabled]="chargement">
+        Actualiser
+      </button>
+    </div>
+
+    <div *ngIf="chargement" class="empty-state">
+      Chargement des alertes...
+    </div>
+
+    <div *ngIf="!chargement && alertes.length === 0"
+         class="empty-state">
+      <h3>Aucune alerte trouvée</h3>
+      <p>Lancez une vérification pour rechercher les retards.</p>
+    </div>
+
+    <div class="table-responsive"
+         *ngIf="!chargement && alertes.length > 0">
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Référence dossier</th>
+            <th>Élève</th>
+            <th>Message</th>
+            <th>Date alerte</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let alerte of alertes">
+            <td>#{{ alerte.id }}</td>
+
+            <td class="reference">
+              {{ alerte.dossier.reference }}
+            </td>
+
+            <td>
+              {{ alerte.dossier.eleve.prenom }}
+              {{ alerte.dossier.eleve.nom }}
+            </td>
+
+            <td class="message-cell">
+              {{ alerte.message }}
+            </td>
+
+            <td>
+              {{ alerte.dateAlerte | date:'dd/MM/yyyy HH:mm' }}
+            </td>
+
+            <td>
+              <span class="status-badge"
+                    [class.resolved]="alerte.resolue">
+                {{ alerte.resolue ? 'Résolue' : 'En attente' }}
+              </span>
+            </td>
+
+            <td>
+              <button
+                *ngIf="!alerte.resolue"
+                type="button"
+                class="btn-resolve"
+                (click)="resoudreAlerte(alerte)"
+                [disabled]="resolutionEnCours !== null">
+                {{ resolutionEnCours === alerte.id
+                  ? 'Traitement...'
+                  : 'Résoudre' }}
+              </button>
+
+              <span *ngIf="alerte.resolue" class="already-resolved">
+                Terminée
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

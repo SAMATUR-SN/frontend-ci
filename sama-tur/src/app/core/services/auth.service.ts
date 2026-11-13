@@ -17,11 +17,12 @@ export class AuthService {
   private readonly apiUrl = '/api/auth/connexion';
 
   login(credentials: LoginRequest): Observable<JwtResponse> {
-    return this.http.post<JwtResponse>(this.apiUrl, credentials).pipe(
-      tap((response) => {
-        this.tokenStorage.saveToken(response.token);
-      })
-    );
+  return this.http.post<JwtResponse>(this.apiUrl, credentials).pipe(
+    tap((response) => {
+      this.tokenStorage.saveToken(response.token);
+      this.tokenStorage.saveUser(response);
+    })
+  );
   }
 
   logout(): void {

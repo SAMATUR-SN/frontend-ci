@@ -1,8 +1,4 @@
 
-/* =========================================
-   CONTENEUR PRINCIPAL
-========================================= */
-
 .eleves-container {
   padding: 30px;
   color: #1e293b;
@@ -11,9 +7,7 @@
   font-family: Arial, sans-serif;
 }
 
-/* =========================================
-   EN-TÊTE
-========================================= */
+/* EN-TÊTE */
 
 .page-header {
   display: flex;
@@ -23,7 +17,7 @@
   margin-bottom: 28px;
 
   h1 {
-    margin: 0 0 8px;
+    margin: 0 0 14px;
     font-size: 28px;
     font-weight: 700;
     color: #0f172a;
@@ -31,7 +25,7 @@
   }
 
   p {
-    margin: 0;
+    margin: 12px 0 0;
     color: #64748b;
     font-size: 14px;
   }
@@ -48,9 +42,29 @@
   white-space: nowrap;
 }
 
-/* =========================================
-   SECTION PRINCIPALE
-========================================= */
+.btn-ajouter-eleve {
+  padding: 11px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #1d4ed8;
+  }
+}
+
+.import-link {
+  display: inline-block;
+  margin-left: 12px;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+/* SECTION PRINCIPALE */
 
 .table-section {
   background: #ffffff;
@@ -60,13 +74,15 @@
   box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
 }
 
-/* =========================================
-   ZONE DE RECHERCHE ET FILTRES
-========================================= */
+/* RECHERCHE ET FILTRES */
 
 .filtres-eleves {
   display: grid;
-  grid-template-columns: minmax(220px, 2fr) minmax(160px, 1fr) minmax(180px, 1fr) auto;
+  grid-template-columns:
+    minmax(220px, 2fr)
+    minmax(160px, 1fr)
+    minmax(180px, 1fr)
+    auto;
   gap: 16px;
   align-items: end;
   margin-bottom: 20px;
@@ -109,10 +125,6 @@
   }
 }
 
-/* =========================================
-   BOUTON DE RÉINITIALISATION
-========================================= */
-
 .btn-reinitialiser {
   height: 44px;
   padding: 0 16px;
@@ -137,9 +149,7 @@
   }
 }
 
-/* =========================================
-   NOMBRE DE RÉSULTATS
-========================================= */
+/* NOMBRE DE RÉSULTATS */
 
 .nombre-resultats {
   margin: 0 0 16px;
@@ -147,9 +157,7 @@
   font-size: 13px;
 }
 
-/* =========================================
-   TABLEAU
-========================================= */
+/* TABLEAU */
 
 .table-wrapper {
   width: 100%;
@@ -210,9 +218,115 @@ table {
   }
 }
 
-/* =========================================
-   CHARGEMENT, ERREURS ET ÉTATS VIDES
-========================================= */
+/* BOUTON VOIR DOSSIER */
+
+.btn-voir-dossier {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 7px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+}
+
+/* PAGINATION */
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pagination-infos {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+
+  span {
+    color: #64748b;
+    font-size: 13px;
+  }
+
+  strong {
+    color: #1e293b;
+  }
+}
+
+.select-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  label {
+    color: #64748b;
+    font-size: 13px;
+  }
+
+  select {
+    height: 34px;
+    padding: 0 9px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: white;
+    color: #334155;
+    cursor: pointer;
+  }
+}
+
+.pagination-commandes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-page,
+.btn-numero-page {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: white;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.btn-numero-page.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: white;
+}
+
+/* CHARGEMENT, ERREURS ET ÉTATS VIDES */
 
 .loading,
 .empty-message {
@@ -236,14 +350,12 @@ table {
     border: none;
     border-radius: 6px;
     background: #b91c1c;
-    color: #ffffff;
+    color: white;
     cursor: pointer;
   }
 }
 
-/* =========================================
-   RESPONSIVE : TABLETTES
-========================================= */
+/* TABLETTES */
 
 @media (max-width: 1100px) {
   .filtres-eleves {
@@ -251,9 +363,7 @@ table {
   }
 }
 
-/* =========================================
-   RESPONSIVE : MOBILES
-========================================= */
+/* MOBILES */
 
 @media (max-width: 600px) {
   .eleves-container {
@@ -285,35 +395,18 @@ table {
     width: 100%;
   }
 
-  .btn-voir-dossier {
-  display: inline-block;
-  padding: 8px 12px;
-  border-radius: 7px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 12px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #dbeafe;
-    color: #1e40af;
+  .pagination-container {
+    align-items: flex-start;
+    flex-direction: column;
   }
-}
 
-}
-.btn-ajouter-eleve {
-  padding: 11px 18px;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
+  .pagination-infos {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-.btn-ajouter-eleve:hover {
-  background: #1d4ed8;
+  .pagination-commandes {
+    width: 100%;
+  }
 }

@@ -1,170 +1,354 @@
 
 <main class="dashboard-container">
 
+  <!-- EN-TÊTE -->
   <header class="dashboard-header">
+
     <div class="header-text">
       <span class="eyebrow">ESPACE DE PILOTAGE</span>
+
       <h1>Bienvenue sur Sama Tur</h1>
-      <p>Suivez les élèves et le traitement des dossiers d'état civil depuis un seul espace.</p>
-      <span class="current-date">{{ dateDuJour }}</span>
+
+      <p>
+        Suivez les élèves et le traitement des dossiers d'état civil
+        depuis un seul espace.
+      </p>
+
+      <div class="user-info">
+
+        <span class="current-date">
+          {{ dateDuJour }}
+        </span>
+
+        <div class="user-badge">
+          <span class="user-avatar">👤</span>
+
+          <div class="user-details">
+            <strong>{{ identifiantUtilisateur }}</strong>
+            <small>{{ getRoleLabel() }}</small>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <div class="header-actions">
-      <button class="refresh-button" type="button"
-              (click)="chargerDonnees()" [disabled]="loading">
+
+      <button
+        class="refresh-button"
+        type="button"
+        (click)="chargerDonnees()"
+        [disabled]="loading">
+
         <span aria-hidden="true">↻</span>
+
         {{ loading ? 'Actualisation...' : 'Actualiser' }}
+
       </button>
-      <button class="logout-button" type="button" (click)="logout()">
+
+      <button
+        class="logout-button"
+        type="button"
+        (click)="logout()">
+
         Déconnexion
+
       </button>
+
     </div>
+
   </header>
 
+  <!-- MESSAGE D'ERREUR -->
   @if (erreurChargement) {
+
     <div class="error-banner">
-      Certaines données n'ont pas pu être chargées. Vérifiez la connexion au serveur puis actualisez.
+      Certaines données n'ont pas pu être chargées.
+      Vérifiez la connexion au serveur puis actualisez.
     </div>
+
   }
 
+  <!-- VUE D'ENSEMBLE -->
   <section class="section-heading">
+
     <div>
       <h2>Vue d'ensemble</h2>
       <p>Les indicateurs de votre activité</p>
     </div>
+
   </section>
 
+  <!-- STATISTIQUES -->
   <section class="stats-grid">
 
-    <article class="stat-card students-card">
-      <div class="stat-top">
-        <div class="stat-icon">♙</div>
-        <span class="stat-label">Élèves inscrits</span>
-      </div>
-      <strong class="stat-value">{{ loading ? '—' : nombreEleves }}</strong>
-      <a routerLink="/eleves" class="stat-link">Consulter les élèves →</a>
-    </article>
+    <!-- STATISTIQUES ÉLÈVES -->
+    @if (peutConsulterEleves) {
 
-    <article class="stat-card dossiers-card">
-      <div class="stat-top">
-        <div class="stat-icon">▤</div>
-        <span class="stat-label">Total des dossiers</span>
-      </div>
-      <strong class="stat-value">{{ loading ? '—' : nombreDossiers }}</strong>
-      <a routerLink="/dossiers" class="stat-link">Consulter les dossiers →</a>
-    </article>
+      <article class="stat-card students-card">
 
-    <article class="stat-card alerts-card">
-      <div class="stat-top">
-        <div class="stat-icon">♧</div>
-        <span class="stat-label">Alertes actives</span>
-      </div>
-      <strong class="stat-value">{{ loading ? '—' : nombreAlertes }}</strong>
-      <a routerLink="/alertes" class="stat-link">Voir les alertes →</a>
-    </article>
+        <div class="stat-top">
+          <div class="stat-icon">♙</div>
+          <span class="stat-label">Élèves inscrits</span>
+        </div>
+
+        <strong class="stat-value">
+          {{ loading ? '—' : nombreEleves }}
+        </strong>
+
+        <a routerLink="/eleves" class="stat-link">
+          Consulter les élèves →
+        </a>
+
+      </article>
+
+    }
+
+    <!-- STATISTIQUES DOSSIERS -->
+    @if (peutConsulterDossiers) {
+
+      <article class="stat-card dossiers-card">
+
+        <div class="stat-top">
+          <div class="stat-icon">▤</div>
+          <span class="stat-label">Total des dossiers</span>
+        </div>
+
+        <strong class="stat-value">
+          {{ loading ? '—' : nombreDossiers }}
+        </strong>
+
+        <a routerLink="/dossiers" class="stat-link">
+          Consulter les dossiers →
+        </a>
+
+      </article>
+
+    }
+
+    <!-- STATISTIQUES ALERTES -->
+    @if (peutGererAlertes) {
+
+      <article class="stat-card alerts-card">
+
+        <div class="stat-top">
+          <div class="stat-icon">♧</div>
+          <span class="stat-label">Alertes actives</span>
+        </div>
+
+        <strong class="stat-value">
+          {{ loading ? '—' : nombreAlertes }}
+        </strong>
+
+        <a routerLink="/alertes" class="stat-link">
+          Voir les alertes →
+        </a>
+
+      </article>
+
+    }
 
   </section>
 
+  <!-- ACCÈS RAPIDE -->
   <section class="quick-section">
+
     <div class="section-heading">
+
       <div>
         <h2>Accès rapide</h2>
         <p>Accédez directement aux principales fonctionnalités.</p>
       </div>
+
     </div>
 
     <div class="quick-grid">
-      <a routerLink="/eleves/nouveau" class="quick-card">
-        <span class="quick-icon">＋</span>
-        <span class="quick-content">
-          <strong>Ajouter un élève</strong>
-          <small>Enregistrer un nouvel élève</small>
-        </span>
-        <span class="quick-arrow">→</span>
-      </a>
 
-      <a routerLink="/dossiers/nouveau" class="quick-card">
-        <span class="quick-icon">＋</span>
-        <span class="quick-content">
-          <strong>Créer un dossier</strong>
-          <small>Démarrer un nouveau dossier</small>
-        </span>
-        <span class="quick-arrow">→</span>
-      </a>
+      <!-- AJOUTER UN ÉLÈVE -->
+      @if (peutCreerEleve) {
 
-      <a routerLink="/dossiers" class="quick-card">
-        <span class="quick-icon">▤</span>
-        <span class="quick-content">
-          <strong>Suivre les dossiers</strong>
-          <small>Consulter leur progression</small>
-        </span>
-        <span class="quick-arrow">→</span>
-      </a>
+        <a routerLink="/eleves/nouveau" class="quick-card">
 
-      <a routerLink="/alertes" class="quick-card">
-        <span class="quick-icon">♧</span>
-        <span class="quick-content">
-          <strong>Gérer les alertes</strong>
-          <small>Identifier les retards</small>
-        </span>
-        <span class="quick-arrow">→</span>
-      </a>
+          <span class="quick-icon">＋</span>
+
+          <span class="quick-content">
+            <strong>Ajouter un élève</strong>
+            <small>Enregistrer un nouvel élève</small>
+          </span>
+
+          <span class="quick-arrow">→</span>
+
+        </a>
+
+      }
+
+      <!-- CRÉER UN DOSSIER -->
+      @if (peutCreerDossier) {
+
+        <a routerLink="/dossiers/nouveau" class="quick-card">
+
+          <span class="quick-icon">＋</span>
+
+          <span class="quick-content">
+            <strong>Créer un dossier</strong>
+            <small>Démarrer un nouveau dossier</small>
+          </span>
+
+          <span class="quick-arrow">→</span>
+
+        </a>
+
+      }
+
+      <!-- SUIVRE LES DOSSIERS -->
+      @if (peutConsulterDossiers) {
+
+        <a routerLink="/dossiers" class="quick-card">
+
+          <span class="quick-icon">▤</span>
+
+          <span class="quick-content">
+            <strong>Suivre les dossiers</strong>
+            <small>Consulter leur progression</small>
+          </span>
+
+          <span class="quick-arrow">→</span>
+
+        </a>
+
+      }
+
+      <!-- GÉRER LES ALERTES -->
+      @if (peutGererAlertes) {
+
+        <a routerLink="/alertes" class="quick-card">
+
+          <span class="quick-icon">♧</span>
+
+          <span class="quick-content">
+            <strong>Gérer les alertes</strong>
+            <small>Identifier les retards</small>
+          </span>
+
+          <span class="quick-arrow">→</span>
+
+        </a>
+
+      }
+
     </div>
+
   </section>
 
-  <section class="recent-section">
-    <div class="section-heading recent-heading">
-      <div>
-        <h2>Dossiers récents</h2>
-        <p>Les cinq premiers dossiers retournés par le serveur.</p>
+  <!-- DOSSIERS RÉCENTS -->
+  @if (peutConsulterDossiers) {
+
+    <section class="recent-section">
+
+      <div class="section-heading recent-heading">
+
+        <div>
+          <h2>Dossiers récents</h2>
+          <p>Les cinq premiers dossiers retournés par le serveur.</p>
+        </div>
+
+        <a routerLink="/dossiers" class="view-all">
+          Voir tous les dossiers →
+        </a>
+
       </div>
-      <a routerLink="/dossiers" class="view-all">Voir tous les dossiers →</a>
-    </div>
 
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Référence</th>
-            <th>Élève</th>
-            <th>Étape actuelle</th>
-            <th>Date de détection</th>
-            <th>Action</th>
-          </tr>
-        </thead>
+      <div class="table-container">
 
-        <tbody>
-          @if (loading) {
+        <table>
+
+          <thead>
             <tr>
-              <td colspan="5" class="empty-state">Chargement des dossiers...</td>
+              <th>Référence</th>
+              <th>Élève</th>
+              <th>Étape actuelle</th>
+              <th>Date de détection</th>
+              <th>Action</th>
             </tr>
-          } @else {
-            @for (dossier of dossiersRecents; track dossier.id) {
+          </thead>
+
+          <tbody>
+
+            @if (loading) {
+
               <tr>
-                <td class="reference-cell">{{ dossier.reference }}</td>
-                <td>{{ getNomEleve(dossier) }}</td>
-                <td><span class="status-badge">{{ getStatutLabel(dossier.etape) }}</span></td>
-                <td>{{ formaterDate(dossier.dateDetection) }}</td>
-                <td>
-                  <a [routerLink]="['/dossiers', dossier.id]" class="detail-link">
-                    Détails →
-                  </a>
+                <td colspan="5" class="empty-state">
+                  Chargement des dossiers...
                 </td>
               </tr>
-            } @empty {
-              <tr>
-                <td colspan="5" class="empty-state">Aucun dossier disponible pour le moment.</td>
-              </tr>
-            }
-          }
-        </tbody>
-      </table>
-    </div>
-  </section>
 
+            } @else {
+
+              @for (dossier of dossiersRecents; track dossier.id) {
+
+                <tr>
+
+                  <td class="reference-cell">
+                    {{ dossier.reference }}
+                  </td>
+
+                  <td>
+                    {{ getNomEleve(dossier) }}
+                  </td>
+
+                  <td>
+                    <span class="status-badge">
+                      {{ getStatutLabel(dossier.etape) }}
+                    </span>
+                  </td>
+
+                  <td>
+                    {{ formaterDate(dossier.dateDetection) }}
+                  </td>
+
+                  <td>
+                    <a
+                      [routerLink]="['/dossiers', dossier.id]"
+                      class="detail-link">
+
+                      Détails →
+
+                    </a>
+                  </td>
+
+                </tr>
+
+              } @empty {
+
+                <tr>
+                  <td colspan="5" class="empty-state">
+                    Aucun dossier disponible pour le moment.
+                  </td>
+                </tr>
+
+              }
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+  }
+
+  <!-- PIED DE PAGE -->
   <footer class="dashboard-footer">
+
     <span>Sama Tur</span>
-    <span>Plateforme de suivi des dossiers d'état civil</span>
+
+    <span>
+      Plateforme de suivi des dossiers d'état civil
+    </span>
+
   </footer>
 
 </main>

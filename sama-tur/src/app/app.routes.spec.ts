@@ -16,9 +16,16 @@ describe('routes', () => {
     }
   });
 
-  it.each(['eleves/nouveau', 'eleves/import'])('réserve %s au rôle ECOLE', (chemin) => {
-    expect(rolesDe(chemin)).toEqual(['ECOLE']);
+  it('réserve eleves/import au rôle ECOLE', () => {
+    expect(rolesDe('eleves/import')).toEqual(['ECOLE']);
   });
+
+  it.each(['eleves', 'eleves/nouveau', 'eleves/:id', 'test-api'])(
+    'ne propose plus la route %s',
+    (chemin) => {
+      expect(routes.some((route) => route.path === chemin)).toBe(false);
+    },
+  );
 
   it('ne propose aucune route de création de dossier (il naît avec l’élève)', () => {
     expect(routes.some((route) => route.path === 'dossiers/nouveau')).toBe(false);

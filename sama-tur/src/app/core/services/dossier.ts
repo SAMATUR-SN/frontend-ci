@@ -5,7 +5,6 @@ import { Observable } from 'rxjs';
 
 import {
   Dossier,
-  CreationDossierRequest,
   HistoriqueDossier
 } from '../models/dossier.model';
 
@@ -27,12 +26,6 @@ export class DossierService {
   getById(id: number): Observable<Dossier> {
     return this.http.get<Dossier>(`${this.apiUrl}/${id}`);
   }
-
-  // Créer un dossier à partir d'un élève existant
-  create(dossier: CreationDossierRequest): Observable<Dossier> {
-    return this.http.post<Dossier>(this.apiUrl, dossier);
-  }
-
 
     avancer(id: number): Observable<Dossier> {
     return this.http.post<Dossier>(

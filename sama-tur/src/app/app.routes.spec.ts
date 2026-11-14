@@ -16,12 +16,13 @@ describe('routes', () => {
     }
   });
 
-  it.each(['eleves/nouveau', 'eleves/import', 'dossiers/nouveau'])(
-    'réserve %s au rôle ECOLE',
-    (chemin) => {
-      expect(rolesDe(chemin)).toEqual(['ECOLE']);
-    },
-  );
+  it.each(['eleves/nouveau', 'eleves/import'])('réserve %s au rôle ECOLE', (chemin) => {
+    expect(rolesDe(chemin)).toEqual(['ECOLE']);
+  });
+
+  it('ne propose aucune route de création de dossier (il naît avec l’élève)', () => {
+    expect(routes.some((route) => route.path === 'dossiers/nouveau')).toBe(false);
+  });
 
   it('réserve les alertes à ETAT_CIVIL, TRIBUNAL et SUPERVISEUR', () => {
     expect(rolesDe('alertes')).toEqual(['ETAT_CIVIL', 'TRIBUNAL', 'SUPERVISEUR']);

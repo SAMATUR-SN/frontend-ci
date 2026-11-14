@@ -35,10 +35,6 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client
   },
   {
-    path: 'dossiers/nouveau',
-    renderMode: RenderMode.Client
-  },
-  {
     path: 'dossiers/:id',
     renderMode: RenderMode.Client
   },

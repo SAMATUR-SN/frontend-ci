@@ -123,14 +123,6 @@ export class Dashboard {
     ]);
   }
 
-  // Création d'un dossier
-  protected get peutCreerDossier(): boolean {
-    return this.hasAnyRole([
-      'ECOLE',
-      'SUPERVISEUR'
-    ]);
-  }
-
   // Consultation et gestion des alertes
   // Le backend autorise tout utilisateur authentifié.
   protected get peutGererAlertes(): boolean {

@@ -85,10 +85,6 @@ export interface Dossier {
   version: number | null;
 }
 
-export interface CreationDossierRequest {
-  reference: string;
-  eleveId: number;
-}
 export interface HistoriqueDossier {
   id: number;
   dossier: Record<string, unknown>;

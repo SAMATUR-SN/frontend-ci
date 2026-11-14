@@ -16,7 +16,6 @@ import { ImportEleves } from './features/eleves/import-eleves/import-eleves';
 
 import { ListeDossiers } from './features/dossiers/liste-dossiers/liste-dossiers';
 import { DetailDossier } from './features/dossiers/detail-dossier/detail-dossier';
-import { AjoutDossier } from './features/dossiers/ajout-dossier/ajout-dossier';
 
 import { ListeAlertes } from './features/alertes/liste-alertes/liste-alertes';
 
@@ -80,16 +79,6 @@ export const routes: Routes = [
     path: 'dossiers',
     component: ListeDossiers,
     canActivate: [authGuard]
-  },
-
-  // Créer un dossier : ECOLE
-  {
-    path: 'dossiers/nouveau',
-    component: AjoutDossier,
-    canActivate: [authGuard, roleGuard],
-    data: {
-      roles: ['ECOLE']
-    }
   },
 
   {

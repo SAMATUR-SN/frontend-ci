@@ -122,6 +122,7 @@ pipeline {
                           -Dsonar.projectName="$SONAR_PROJECT" \
                           -Dsonar.sources="$APP_DIR/src" \
                           -Dsonar.exclusions="**/*.spec.ts"
+                          -Dsonar.working.directory="$WORKSPACE/.scannerwork"
                     '''
                 }
             }

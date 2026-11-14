@@ -1,6 +1,6 @@
 
 import { Classe } from './classe.model';
-import { Eleve } from './eleve.model';
+import { Eleve, EleveDto } from './eleve.model';
 
 /** Les six étapes du contrat, dans l'ordre. */
 export const ETAPES = [
@@ -46,6 +46,75 @@ export interface DossierResume {
   dateDerniereEtape: string | null;
   enRetard: boolean;
   joursDepuisJugement: number | null;
+}
+
+export const PREUVES_NAISSANCE = ['CERTIFICAT_ACCOUCHEMENT', 'TEMOINS'] as const;
+export type PreuveNaissance = (typeof PREUVES_NAISSANCE)[number];
+
+export const TYPES_AUDIENCE = ['ORDINAIRE', 'SPECIALE', 'FORAINE'] as const;
+export type TypeAudience = (typeof TYPES_AUDIENCE)[number];
+
+export interface Temoin {
+  nomComplet: string;
+  numeroPiece: string;
+}
+
+/** Une ligne de l'historique : la ligne de création a etapeDepart à null. */
+export interface HistoriqueEtape {
+  etapeDepart: StatutDossier | null;
+  etapeArrivee: StatutDossier;
+  /** AAAA-MM-JJThh:mm:ss[.ffffff], sans fuseau (heure du serveur). */
+  dateHeure: string;
+  auteur: string | null;
+  role: string | null;
+  commentaire: string | null;
+}
+
+/** GET /api/dossiers/{id} : l'historique est dans le détail. */
+export interface DossierDetail {
+  id: number;
+  reference: string;
+  etape: StatutDossier;
+  enRetard: boolean;
+  joursDepuisJugement: number | null;
+  eleve: EleveDto;
+  dateDetection: string | null;
+  numeroCertificat: string | null;
+  dateCertificat: string | null;
+  centreEtatCivilId: number | null;
+  centreEtatCivil: string | null;
+  preuveNaissance: PreuveNaissance | null;
+  temoins: Temoin[];
+  numeroJugement: string | null;
+  dateJugement: string | null;
+  tribunalId: number | null;
+  tribunal: string | null;
+  typeAudience: TypeAudience | null;
+  numeroActe: string | null;
+  anneeActe: number | null;
+  dateTranscription: string | null;
+  dateRemise: string | null;
+  /** Du plus ancien au plus récent. */
+  historique: HistoriqueEtape[];
+}
+
+/** POST /api/dossiers/{id}/avancer : seuls les champs de l'étape visée sont envoyés. */
+export interface AvancerDossierRequest {
+  etapeCible: StatutDossier;
+  numeroCertificat?: string;
+  dateCertificat?: string;
+  centreEtatCivilId?: number;
+  preuveNaissance?: PreuveNaissance;
+  temoins?: Temoin[];
+  numeroJugement?: string;
+  dateJugement?: string;
+  tribunalId?: number;
+  typeAudience?: TypeAudience;
+  numeroActe?: string;
+  anneeActe?: number;
+  dateTranscription?: string;
+  dateRemise?: string;
+  commentaire?: string;
 }
 
 /** @deprecated Ancienne énumération à 7 étapes (CERTIFICAT_ETABLI n'existe plus). Retirée au bloc 3. */

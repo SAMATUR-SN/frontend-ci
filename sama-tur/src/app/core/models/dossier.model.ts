@@ -1,4 +1,5 @@
 
+import { Classe } from './classe.model';
 import { Eleve } from './eleve.model';
 
 /** Les six étapes du contrat, dans l'ordre. */
@@ -24,6 +25,16 @@ export const TRIS_DOSSIERS = [
 ] as const;
 
 export type TriDossiers = (typeof TRIS_DOSSIERS)[number];
+
+/** Filtres de GET /api/dossiers. `enRetard` : true, false, ou absent pour tous. */
+export interface FiltreDossiers {
+  etape?: StatutDossier;
+  communeId?: number;
+  ecoleId?: number;
+  classe?: Classe;
+  enRetard?: boolean;
+  q?: string;
+}
 
 /** Une ligne de GET /api/dossiers. */
 export interface DossierResume {

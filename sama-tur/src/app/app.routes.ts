@@ -17,8 +17,6 @@ import { ImportEleves } from './features/eleves/import-eleves/import-eleves';
 
 import { ListeDossiers } from './features/dossiers/liste-dossiers/liste-dossiers';
 
-import { ListeAlertes } from './features/alertes/liste-alertes/liste-alertes';
-
 export const routes: Routes = [
 
   // AUTHENTIFICATION
@@ -92,7 +90,8 @@ export const routes: Routes = [
   // GESTION DES ALERTES
   {
     path: 'alertes',
-    component: ListeAlertes,
+    loadComponent: () =>
+      import('./features/alertes/liste-alertes/liste-alertes').then((m) => m.ListeAlertes),
     canActivate: [authGuard, roleGuard],
     data: {
       roles: ROLES_ALERTES

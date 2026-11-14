@@ -1,29 +1,34 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Alerte } from '../models/alerte.model';
+
+import { VerificationAlertes } from '../models/alerte.model';
+import { DossierResume } from '../models/dossier.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AlerteService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = '/api/alertes';
 
-  getAll(): Observable<Alerte[]> {
-    return this.http.get<Alerte[]>(this.apiUrl);
+  /**
+   * GET /api/alertes : les dossiers en retard (jugés, non transcrits au-delà du délai cible), du
+   * plus ancien jugement au plus récent, sans pagination. Ce ne sont pas des alertes enregistrées :
+   * aucune route ne donne leur identifiant, donc rien ne peut se « résoudre » depuis l'interface.
+   */
+  listerEnRetard(communeId?: number | null): Observable<DossierResume[]> {
+    let params = new HttpParams();
+
+    if (communeId !== undefined && communeId !== null) {
+      params = params.set('communeId', communeId);
+    }
+
+    return this.http.get<DossierResume[]>(this.apiUrl, { params });
   }
 
-  verifier(): Observable<string> {
-    return this.http.post('/api/alertes/verifier', null, {
-      responseType: 'text'
-    });
-  }
-
-  resoudre(id: number): Observable<Alerte> {
-    return this.http.patch<Alerte>(
-      `${this.apiUrl}/${id}/resoudre`,
-      null
-    );
+  /** POST /api/alertes/verifier (état civil) : enregistre les alertes des nouveaux retards. */
+  verifier(): Observable<VerificationAlertes> {
+    return this.http.post<VerificationAlertes>(`${this.apiUrl}/verifier`, null);
   }
 }

@@ -2,129 +2,91 @@
 
   <div class="page-header">
     <div>
-      <h1>Gestion des alertes</h1>
-      <p>Surveillance des retards dans le traitement des dossiers.</p>
+      <h1>Alertes de retard</h1>
+      <p>Dossiers jugés dont la transcription dépasse le délai cible, du jugement le plus ancien au plus récent.</p>
     </div>
 
-    <button
-      class="btn-verify"
-      type="button"
-      (click)="verifierAlertes()"
-      [disabled]="verificationEnCours">
-      {{ verificationEnCours ? 'Vérification...' : 'Vérifier les retards' }}
-    </button>
+    @if (peutVerifier) {
+      <button class="btn-verify" type="button" (click)="verifier()" [disabled]="verificationEnCours()">
+        {{ verificationEnCours() ? 'Vérification...' : 'Vérifier les retards' }}
+      </button>
+    }
   </div>
 
-  <div class="stats-grid">
-    <div class="stats-card">
-      <span>Total des alertes</span>
-      <strong>{{ alertes.length }}</strong>
-    </div>
+  @if (confirmation()) {
+    <div class="message-success" role="status">{{ confirmation() }}</div>
+  }
 
-    <div class="stats-card">
-      <span>Alertes non résolues</span>
-      <strong class="warning-number">{{ alertesNonResolues }}</strong>
-    </div>
-
-    <div class="stats-card">
-      <span>Alertes résolues</span>
-      <strong class="success-number">
-        {{ alertes.length - alertesNonResolues }}
-      </strong>
-    </div>
-  </div>
-
-  <div *ngIf="messageErreur" class="message-error">
-    {{ messageErreur }}
-  </div>
-
-  <div *ngIf="messageSucces" class="message-success">
-    {{ messageSucces }}
-  </div>
+  @if (erreurVerification()) {
+    <div class="message-error" role="alert">{{ erreurVerification() }}</div>
+  }
 
   <div class="content-card">
-    <div class="table-header">
-      <h2>Liste des alertes</h2>
-      <button type="button" class="btn-refresh"
-              (click)="chargerAlertes()"
-              [disabled]="chargement">
+
+    <div class="filtres">
+      <div class="champ">
+        <label for="alertes-commune">Commune de naissance</label>
+        <select id="alertes-commune" #choixCommune (change)="choisirCommune(choixCommune.value)">
+          <option value="" [selected]="communeId() === null">Toutes les communes</option>
+          @for (commune of communes(); track commune.id) {
+            <option [value]="commune.id" [selected]="communeId() === commune.id">{{ commune.nom }}</option>
+          }
+        </select>
+      </div>
+
+      <button type="button" class="btn-refresh" (click)="actualiser()" [disabled]="chargement()">
         Actualiser
       </button>
     </div>
 
-    <div *ngIf="chargement" class="empty-state">
-      Chargement des alertes...
+    <div class="table-header">
+      <h2>Liste</h2>
+      <span class="compteur" aria-live="polite">
+        {{ nombre() === 0 ? 'Aucun dossier en retard' : nombre() === 1 ? '1 dossier en retard' : nombre() + ' dossiers en retard' }}
+      </span>
     </div>
 
-    <div *ngIf="!chargement && alertes.length === 0"
-         class="empty-state">
-      <h3>Aucune alerte trouvée</h3>
-      <p>Lancez une vérification pour rechercher les retards.</p>
-    </div>
+    @if (chargement()) {
+      <div class="empty-state">Chargement des dossiers en retard...</div>
+    } @else if (messageErreur()) {
+      <div class="message-error" role="alert">
+        {{ messageErreur() }}
+        <button type="button" class="lien" (click)="actualiser()">Réessayer</button>
+      </div>
+    } @else if (nombre() === 0) {
+      <div class="empty-state">
+        <h3>Aucun dossier en retard</h3>
+        <p>{{ communeId() === null ? 'Tous les jugements sont transcrits dans le délai cible.' : 'Aucun dossier en retard pour cette commune.' }}</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Référence</th>
+              <th>Élève</th>
+              <th>Commune</th>
+              <th>Étape</th>
+              <th>Jours depuis le jugement</th>
+              <th>Action</th>
+            </tr>
+          </thead>
 
-    <div class="table-responsive"
-         *ngIf="!chargement && alertes.length > 0">
+          <tbody>
+            @for (dossier of dossiers(); track dossier.id) {
+              <tr>
+                <td class="reference">{{ dossier.reference }}</td>
+                <td>{{ dossier.eleve.prenom }} {{ dossier.eleve.nom }}</td>
+                <td>{{ dossier.communeNaissance || '—' }}</td>
+                <td><span class="status-badge">{{ libelleEtape(dossier.etape) }}</span></td>
+                <td class="jours">{{ dossier.joursDepuisJugement ?? '—' }}</td>
+                <td><a class="btn-detail" [routerLink]="['/dossiers', dossier.id]">Consulter</a></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
 
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Référence dossier</th>
-            <th>Élève</th>
-            <th>Message</th>
-            <th>Date alerte</th>
-            <th>Statut</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr *ngFor="let alerte of alertes">
-            <td>#{{ alerte.id }}</td>
-
-            <td class="reference">
-              {{ alerte.dossier.reference }}
-            </td>
-
-            <td>
-              {{ alerte.dossier.eleve.prenom }}
-              {{ alerte.dossier.eleve.nom }}
-            </td>
-
-            <td class="message-cell">
-              {{ alerte.message }}
-            </td>
-
-            <td>
-              {{ alerte.dateAlerte | date:'dd/MM/yyyy HH:mm' }}
-            </td>
-
-            <td>
-              <span class="status-badge"
-                    [class.resolved]="alerte.resolue">
-                {{ alerte.resolue ? 'Résolue' : 'En attente' }}
-              </span>
-            </td>
-
-            <td>
-              <button
-                *ngIf="!alerte.resolue"
-                type="button"
-                class="btn-resolve"
-                (click)="resoudreAlerte(alerte)"
-                [disabled]="resolutionEnCours !== null">
-                {{ resolutionEnCours === alerte.id
-                  ? 'Traitement...'
-                  : 'Résoudre' }}
-              </button>
-
-              <span *ngIf="alerte.resolue" class="already-resolved">
-                Terminée
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
   </div>
 </div>

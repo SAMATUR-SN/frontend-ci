@@ -1,6 +1,6 @@
 
 import { Classe } from './classe.model';
-import { Eleve, EleveDto } from './eleve.model';
+import { EleveDto } from './eleve.model';
 
 /** Les six étapes du contrat, dans l'ordre. */
 export const ETAPES = [
@@ -115,52 +115,4 @@ export interface AvancerDossierRequest {
   dateTranscription?: string;
   dateRemise?: string;
   commentaire?: string;
-}
-
-/** @deprecated Ancienne énumération à 7 étapes (CERTIFICAT_ETABLI n'existe plus). Retirée au bloc 3. */
-export type StatutDossierAncien =
-  | 'DETECTE'
-  | 'CERTIFICAT_OBTENU'
-  | 'CERTIFICAT_ETABLI'
-  | 'DOSSIER_COMPLET'
-  | 'JUGEMENT_RENDU'
-  | 'TRANSCRIT'
-  | 'ACTE_REMIS';
-
-export interface CentreEtatCivil {
-  id: number;
-  nom: string;
-  communeId: number;
-}
-
-export interface TribunalInstance {
-  id: number;
-  nom: string;
-  ville: string;
-}
-
-/** @deprecated Remplacé par DossierResume (liste) et DossierDetail (fiche, bloc 2b). */
-export interface Dossier {
-  id: number;
-  reference: string;
-  eleve: Eleve;
-  etape: StatutDossierAncien;
-
-  dateDetection: string | null;
-
-  numeroCertificat: string | null;
-  dateCertificat: string | null;
-
-  numeroJugement: string | null;
-  dateJugement: string | null;
-  typeAudience: string | null;
-
-  numeroActe: string | null;
-  dateTranscription: string | null;
-  dateRemise: string | null;
-
-  centreEtatCivil: CentreEtatCivil | null;
-  tribunalInstance: TribunalInstance | null;
-
-  version: number | null;
 }

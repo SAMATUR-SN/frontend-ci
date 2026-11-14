@@ -119,7 +119,7 @@ pipeline {
                           -e SONAR_HOST_URL="$SONAR_HOST_URL" -e SONAR_TOKEN="$SONAR_AUTH_TOKEN" \
                           "$SCANNER_IMAGE" \
                           -Dsonar.projectKey="$SONAR_PROJECT" \
-                          -Dsonar.projectName="$SONAR_PROJECT" \
+                          -Dsonar.working.directory="$WORKSPACE/.scannerwork" \
                           -Dsonar.sources="$APP_DIR/src" \
                           -Dsonar.exclusions="**/*.spec.ts"
                     '''

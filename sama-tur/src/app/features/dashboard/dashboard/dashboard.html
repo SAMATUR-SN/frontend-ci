@@ -24,8 +24,11 @@
           <span class="user-avatar">👤</span>
 
           <div class="user-details">
-            <strong>{{ identifiantUtilisateur }}</strong>
+            <strong>{{ nomUtilisateur }}</strong>
             <small>{{ getRoleLabel() }}</small>
+            @if (structureUtilisateur) {
+              <small>{{ structureUtilisateur }}</small>
+            }
           </div>
         </div>
 

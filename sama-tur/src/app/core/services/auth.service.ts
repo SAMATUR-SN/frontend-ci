@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
 import { LoginRequest } from '../models/login-request.model';
-import { JwtResponse } from '../models/jwt-response.model';
+import { ReponseConnexion } from '../models/reponse-connexion.model';
 import { TokenStorage } from './token-storage';
 
 @Injectable({
@@ -16,17 +16,14 @@ export class AuthService {
 
   private readonly apiUrl = '/api/auth/connexion';
 
-  login(credentials: LoginRequest): Observable<JwtResponse> {
-  return this.http.post<JwtResponse>(this.apiUrl, credentials).pipe(
-    tap((response) => {
-      this.tokenStorage.saveToken(response.token);
-      this.tokenStorage.saveUser(response);
-    })
-  );
+  login(credentials: LoginRequest): Observable<ReponseConnexion> {
+    return this.http
+      .post<ReponseConnexion>(this.apiUrl, credentials)
+      .pipe(tap((reponse) => this.tokenStorage.enregistrer(reponse)));
   }
 
   logout(): void {
-    this.tokenStorage.removeToken();
+    this.tokenStorage.clear();
   }
 
   getToken(): string | null {

@@ -49,23 +49,23 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
-  // Ajouter un élève : ECOLE et ADMIN
+  // Ajouter un élève : ECOLE
   {
     path: 'eleves/nouveau',
     component: AjoutEleve,
     canActivate: [authGuard, roleGuard],
     data: {
-      roles: ['ECOLE', 'ADMIN']
+      roles: ['ECOLE']
     }
   },
 
-  // Importer les élèves : ECOLE et ADMIN
+  // Importer les élèves : ECOLE
   {
     path: 'eleves/import',
     component: ImportEleves,
     canActivate: [authGuard, roleGuard],
     data: {
-      roles: ['ECOLE', 'ADMIN']
+      roles: ['ECOLE']
     }
   },
 
@@ -82,13 +82,13 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
-  // Créer un dossier : ECOLE et ADMIN
+  // Créer un dossier : ECOLE
   {
     path: 'dossiers/nouveau',
     component: AjoutDossier,
     canActivate: [authGuard, roleGuard],
     data: {
-      roles: ['ECOLE', 'ADMIN']
+      roles: ['ECOLE']
     }
   },
 
@@ -107,8 +107,7 @@ export const routes: Routes = [
       roles: [
         'ETAT_CIVIL',
         'TRIBUNAL',
-        'SUPERVISEUR',
-        'ADMIN'
+        'SUPERVISEUR'
       ]
     }
   },

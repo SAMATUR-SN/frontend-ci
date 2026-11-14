@@ -6,7 +6,7 @@ Interface web de suivi des dossiers d'état civil des élèves (détection, cert
 
 - **Node.js** `^22.22.3`, `^24.15.0` ou `>=26` : c'est la condition d'Angular CLI 22.2. Avec une version plus ancienne, `npm ci` ou `ng` refusent de démarrer.
 - **npm 11** (le champ `packageManager` du projet indique 11.20.0).
-- **Docker** et Docker Compose, pour lancer le backend.
+- **Docker** et Docker Compose, pour lancer le backend et pour construire l'image du frontend.
 - Le dépôt **`backend-ci`**, cloné à côté de celui-ci.
 
 ## Lancer en développement
@@ -45,10 +45,27 @@ Vitest, dans jsdom. Les tests couvrent les étapes et les rôles, les requêtes 
 
 ```bash
 cd sama-tur
-npm run build               # production ; sortie dans sama-tur/dist/sama-tur/
+npm run build               # production ; fichiers statiques dans sama-tur/dist/sama-tur/browser/
 ```
 
-Le build ne doit produire **aucun avertissement**. Budgets : 500 kB pour le bundle initial, 6 kB (avertissement) et 8 kB (erreur) par feuille de style de composant. Les écrans les plus lourds (fiche d'un dossier, alertes, import CSV) sont chargés à la demande.
+L'application est une **application monopage statique** (pas de rendu côté serveur) : `index.html`, `main-*.js`, `styles-*.css` et les écrans chargés à la demande. Le build ne doit produire **aucun avertissement**. Budgets : 500 kB pour le bundle initial, 6 kB (avertissement) et 8 kB (erreur) par feuille de style de composant. Les écrans les plus lourds (fiche d'un dossier, alertes, import CSV) sont chargés à la demande.
+
+## Image Docker
+
+```bash
+docker build -t samatur-frontend:dev sama-tur
+docker run --rm -d --name samatur-front-test -p 8081:8080 samatur-frontend:dev
+curl -i http://localhost:8081/health        # 200 « ok »
+curl -i http://localhost:8081/dashboard     # 200, index.html (repli de l'application monopage)
+docker rm -f samatur-front-test
+```
+
+L'image sert les fichiers statiques avec **nginx sans privilèges** (utilisateur non root) sur le **port 8080** du conteneur ; la configuration est dans [`sama-tur/nginx.conf`](sama-tur/nginx.conf).
+
+- **`GET /health`** (texte brut) : `200 ok` ; `503 draining` si le fichier `/tmp/draining` existe dans le conteneur. C'est ce que le déploiement sans coupure crée avant d'arrêter l'ancien conteneur pour que Traefik le retire du routage. Le `HEALTHCHECK` de l'image interroge cette route.
+- **Aucune route `/api` dans l'image** : en production, Traefik envoie `/api` au backend, sur la même origine que le frontend. Le proxy de `proxy.conf.json` ne sert qu'à `ng serve`.
+- `index.html` n'est jamais mis en cache ; les fichiers dont le nom porte un hachage se gardent un an.
+- En-têtes : `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin`. Il n'y a **pas de `Content-Security-Policy`** : sans essai dans un navigateur, elle risquerait de bloquer l'application.
 
 ## Structure
 

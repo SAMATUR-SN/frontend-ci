@@ -1,4 +1,3 @@
-
 <div class="page-container">
 
   <div class="page-header">
@@ -8,13 +7,9 @@
     </div>
 
     <div class="header-actions">
-      <a routerLink="/dossiers/nouveau" class="btn-new">
-        + Nouveau dossier
-      </a>
-
       <button type="button" class="btn-refresh"
-              (click)="chargerDossiers()"
-              [disabled]="chargement">
+              (click)="actualiser()"
+              [disabled]="chargement()">
         Actualiser
       </button>
     </div>
@@ -22,89 +17,165 @@
 
   <div class="stats-card">
     <div>
-      <span class="stats-label">Total des dossiers</span>
-      <strong>{{ dossiers.length }}</strong>
+      <span class="stats-label">
+        {{ filtreActif() ? 'Dossiers correspondant aux filtres' : 'Total des dossiers' }}
+      </span>
+      <strong>{{ total() }}</strong>
     </div>
   </div>
 
   <div class="content-card">
 
+    <div class="filtres" role="search">
+
+      <div class="champ champ-recherche">
+        <label for="f-recherche">Recherche</label>
+        <input id="f-recherche" type="search" #champRecherche
+               placeholder="Référence, nom ou prénom"
+               [value]="recherche()"
+               (input)="saisirRecherche(champRecherche.value)" />
+      </div>
+
+      <div class="champ">
+        <label for="f-etape">Étape</label>
+        <select id="f-etape" #choixEtape (change)="choisirEtape(choixEtape.value)">
+          <option value="" [selected]="etape() === null">Toutes</option>
+          @for (e of etapes; track e) {
+            <option [value]="e" [selected]="etape() === e">{{ libelleEtape(e) }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="champ">
+        <label for="f-commune">Commune de naissance</label>
+        <select id="f-commune" #choixCommune (change)="choisirCommune(choixCommune.value)">
+          <option value="" [selected]="communeId() === null">Toutes</option>
+          @for (c of communes(); track c.id) {
+            <option [value]="c.id" [selected]="communeId() === c.id">{{ c.nom }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="champ">
+        <label for="f-ecole">École</label>
+        <select id="f-ecole" #choixEcole (change)="choisirEcole(choixEcole.value)">
+          <option value="" [selected]="ecoleId() === null">Toutes</option>
+          @for (e of ecoles(); track e.id) {
+            <option [value]="e.id" [selected]="ecoleId() === e.id">{{ e.nom }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="champ">
+        <label for="f-classe">Classe</label>
+        <select id="f-classe" #choixClasse (change)="choisirClasse(choixClasse.value)">
+          <option value="" [selected]="classe() === null">Toutes</option>
+          @for (c of classes; track c) {
+            <option [value]="c" [selected]="classe() === c">{{ c }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="champ">
+        <label for="f-retard">Retard</label>
+        <select id="f-retard" #choixRetard (change)="choisirRetard(choixRetard.value)">
+          <option value="tous" [selected]="retard() === 'tous'">Tous</option>
+          <option value="oui" [selected]="retard() === 'oui'">En retard</option>
+          <option value="non" [selected]="retard() === 'non'">Pas en retard</option>
+        </select>
+      </div>
+
+      <div class="champ">
+        <label for="f-tri">Trier par</label>
+        <select id="f-tri" #choixTri (change)="choisirTri(choixTri.value)">
+          @for (t of tris; track t) {
+            <option [value]="t" [selected]="tri() === t">{{ libelleTri(t) }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="champ champ-action">
+        <button type="button" class="btn-reset" (click)="reinitialiser()">Réinitialiser</button>
+      </div>
+
+    </div>
+
     <div class="table-header">
       <h2>Liste des dossiers</h2>
-      <span>{{ dossiers.length }} dossier(s)</span>
+      <span aria-live="polite">{{ total() }} dossier(s)</span>
     </div>
 
-    <div *ngIf="chargement" class="message-info">
-      Chargement des dossiers...
-    </div>
+    @if (chargement()) {
+      <div class="message-info">Chargement des dossiers...</div>
+    } @else if (messageErreur()) {
+      <div class="message-error" role="alert">
+        {{ messageErreur() }}
+        <button type="button" (click)="actualiser()">Réessayer</button>
+      </div>
+    } @else if (dossiers().length === 0) {
+      <div class="empty-state">
+        <h3>Aucun dossier trouvé</h3>
+        <p>
+          {{ filtreActif() ? 'Aucun dossier ne correspond aux filtres choisis.'
+                           : 'Il n\'y a actuellement aucun dossier à afficher.' }}
+        </p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Référence</th>
+              <th>Élève</th>
+              <th>Classe</th>
+              <th>École</th>
+              <th>Commune</th>
+              <th>Étape actuelle</th>
+              <th>Dernière étape</th>
+              <th>Retard</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-    <div *ngIf="messageErreur" class="message-error">
-      {{ messageErreur }}
-      <button type="button" (click)="chargerDossiers()">
-        Réessayer
-      </button>
-    </div>
+          <tbody>
+            @for (dossier of dossiers(); track dossier.id) {
+              <tr>
+                <td class="reference">{{ dossier.reference }}</td>
+                <td><strong>{{ dossier.eleve.prenom }} {{ dossier.eleve.nom }}</strong></td>
+                <td>{{ dossier.eleve.classe }}</td>
+                <td>{{ dossier.eleve.ecole || '—' }}</td>
+                <td>{{ dossier.communeNaissance || '—' }}</td>
+                <td><span class="status-badge">{{ libelleEtape(dossier.etape) }}</span></td>
+                <td>{{ formaterDate(dossier.dateDerniereEtape) }}</td>
+                <td>
+                  @if (dossier.enRetard) {
+                    <span class="badge-retard">En retard</span>
+                  }
+                  @if (dossier.joursDepuisJugement != null) {
+                    <small class="jours">{{ dossier.joursDepuisJugement }} j depuis le jugement</small>
+                  }
+                </td>
+                <td>
+                  <a class="btn-detail" [routerLink]="['/dossiers', dossier.id]">Consulter</a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
 
-    <div *ngIf="!chargement && !messageErreur && dossiers.length === 0"
-         class="empty-state">
-      <h3>Aucun dossier trouvé</h3>
-      <p>Il n'y a actuellement aucun dossier à afficher.</p>
-    </div>
-
-    <div class="table-responsive"
-         *ngIf="!chargement && !messageErreur && dossiers.length > 0">
-
-      <table>
-        <thead>
-          <tr>
-            <th>Référence</th>
-            <th>Élève</th>
-            <th>École</th>
-            <th>Étape actuelle</th>
-            <th>Date de détection</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr *ngFor="let dossier of dossiers">
-
-            <td class="reference">
-              {{ dossier.reference }}
-            </td>
-
-            <td>
-              <strong>
-                {{ dossier.eleve.prenom }} {{ dossier.eleve.nom }}
-              </strong>
-            </td>
-
-            <td>
-              {{ dossier.eleve.ecole?.nom || 'Non renseignée' }}
-            </td>
-
-            <td>
-              <span class="status-badge">
-                {{ dossier.etape }}
-              </span>
-            </td>
-
-            <td>
-              {{ dossier.dateDetection || 'Non renseignée' }}
-            </td>
-
-            <td>
-              <a class="btn-detail"
-                 [routerLink]="['/dossiers', dossier.id]">
-                Consulter
-              </a>
-            </td>
-
-          </tr>
-        </tbody>
-      </table>
-
-    </div>
+      @if (totalPages() > 1) {
+        <nav class="pagination" aria-label="Pagination des dossiers">
+          <button type="button" (click)="precedente()" [disabled]="page() === 0">
+            Précédent
+          </button>
+          <span>Page {{ page() + 1 }} sur {{ totalPages() }}</span>
+          <button type="button" (click)="suivante()" [disabled]="page() + 1 >= totalPages()">
+            Suivant
+          </button>
+        </nav>
+      }
+    }
 
   </div>
 </div>

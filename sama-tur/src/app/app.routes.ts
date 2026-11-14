@@ -13,7 +13,6 @@ import { TestApi } from './features/eleves/test-api/test-api';
 import { ListeEleves } from './features/eleves/liste-eleves/liste-eleves';
 import { DetailEleve } from './features/eleves/detail-eleve/detail-eleve';
 import { AjoutEleve } from './features/eleves/ajout-eleve/ajout-eleve';
-import { ImportEleves } from './features/eleves/import-eleves/import-eleves';
 
 import { ListeDossiers } from './features/dossiers/liste-dossiers/liste-dossiers';
 
@@ -59,7 +58,8 @@ export const routes: Routes = [
   // Importer les élèves : ECOLE
   {
     path: 'eleves/import',
-    component: ImportEleves,
+    loadComponent: () =>
+      import('./features/eleves/import-eleves/import-eleves').then((m) => m.ImportEleves),
     canActivate: [authGuard, roleGuard],
     data: {
       roles: ROLES_IMPORT

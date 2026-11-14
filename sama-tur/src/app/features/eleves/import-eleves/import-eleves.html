@@ -1,4 +1,3 @@
-
 <main class="import-container">
 
   <header class="page-header">
@@ -8,15 +7,31 @@
       <p>Enregistrez plusieurs élèves simultanément à partir d'un fichier CSV.</p>
     </div>
 
-    <a routerLink="/eleves" class="back-link">← Retour aux élèves</a>
+    <a routerLink="/dashboard" class="back-link">← Retour au tableau de bord</a>
   </header>
 
   <section class="instructions-card">
-    <div class="instructions-icon">ⓘ</div>
+    <div class="instructions-icon" aria-hidden="true">ⓘ</div>
     <div>
       <h2>Format attendu</h2>
-      <p>Le fichier doit être au format CSV avec un séparateur point-virgule (;).</p>
-      <p>Les colonnes doivent respecter exactement le format attendu par le serveur.</p>
+      <p>
+        Fichier CSV en UTF-8, séparateur point-virgule (;), une ligne d'en-tête,
+        2 Mo et 1 000 lignes au maximum.
+      </p>
+      <p>
+        Depuis Excel : « Enregistrer sous », puis le format
+        <strong>CSV UTF-8 (délimité par des points-virgules)</strong>.
+      </p>
+      <p>
+        Colonnes obligatoires : {{ colonnesObligatoires }}. Facultatives :
+        date_naissance_presumee, nom_pere, telephone_parent, langue_contact, numero_ine.
+      </p>
+      <p>
+        <button type="button" class="lien-modele" (click)="telechargerModele()">
+          Télécharger le modèle CSV
+        </button>
+        Supprimez la ligne d'exemple avant d'importer.
+      </p>
     </div>
   </section>
 
@@ -27,38 +42,38 @@
     </div>
 
     <label class="upload-zone" for="csvFile">
-      <span class="upload-icon">↑</span>
+      <span class="upload-icon" aria-hidden="true">↑</span>
       <strong>Choisir un fichier CSV</strong>
-      <span>Format accepté : .csv</span>
+      <span>Format accepté : .csv, 2 Mo au maximum</span>
       <span class="choose-button">Parcourir les fichiers</span>
+      <input
+        id="csvFile"
+        #champFichier
+        type="file"
+        accept=".csv,text/csv"
+        (change)="choisirFichier($event)"
+      />
     </label>
 
-    <input
-      id="csvFile"
-      type="file"
-      accept=".csv,text/csv"
-      (change)="onFileSelected($event)"
-    />
-
-    @if (nomFichier) {
+    @if (fichier(); as choisi) {
       <div class="file-selected">
-        <span class="file-icon">CSV</span>
+        <span class="file-icon" aria-hidden="true">CSV</span>
         <div class="file-info">
-          <strong>{{ nomFichier }}</strong>
-          <small>{{ nombreLignes }} ligne(s) de données détectée(s)</small>
+          <strong>{{ choisi.name }}</strong>
+          <small>
+            {{ nombreLignes() }} {{ nombreLignes() > 1 ? 'lignes' : 'ligne' }} de données détectée{{ nombreLignes() > 1 ? 's' : '' }}
+          </small>
         </div>
-        <button type="button" class="remove-button" (click)="reinitialiser()">
-          Retirer
-        </button>
+        <button type="button" class="remove-button" (click)="retirer()">Retirer</button>
       </div>
     }
 
-    @if (erreurFichier) {
-      <div class="message error">{{ erreurFichier }}</div>
+    @if (erreurFichier()) {
+      <div class="message error" role="alert">{{ erreurFichier() }}</div>
     }
   </section>
 
-  @if (apercu.length > 0) {
+  @if (apercu().length > 0) {
     <section class="preview-card">
       <div class="section-title">
         <h2>2. Prévisualisation</h2>
@@ -69,14 +84,14 @@
         <table>
           <thead>
             <tr>
-              @for (colonne of apercu[0]; track $index) {
+              @for (colonne of apercu()[0]; track $index) {
                 <th>{{ colonne || 'Colonne ' + ($index + 1) }}</th>
               }
             </tr>
           </thead>
 
           <tbody>
-            @for (ligne of apercu.slice(1); track $index) {
+            @for (ligne of apercu().slice(1); track $index) {
               <tr>
                 @for (cellule of ligne; track $index) {
                   <td>{{ cellule }}</td>
@@ -93,21 +108,14 @@
     </section>
   }
 
-  @if (messageSucces) {
-    <div class="message success">
-      <strong>Importation réussie</strong>
-      <p>{{ messageSucces }}</p>
-    </div>
+  @if (rapport(); as bilan) {
+    <app-resultat-import [rapport]="bilan" (nouvelImport)="nouvelImport()" />
   }
 
-  @if (erreurs.length > 0) {
-    <section class="message error">
-      <strong>Importation refusée ou incomplète</strong>
-      <ul>
-        @for (erreur of erreurs; track $index) {
-          <li>{{ erreur }}</li>
-        }
-      </ul>
+  @if (erreurServeur()) {
+    <section class="message error" role="alert">
+      <strong>Importation refusée</strong>
+      <p>{{ erreurServeur() }}</p>
     </section>
   }
 
@@ -120,10 +128,10 @@
     <button
       type="button"
       class="import-button"
-      [disabled]="!fichier || chargement"
+      [disabled]="!fichier() || chargement()"
       (click)="importer()"
     >
-      {{ chargement ? 'Importation en cours...' : 'Importer les élèves' }}
+      {{ chargement() ? 'Importation en cours...' : 'Importer les élèves' }}
     </button>
   </section>
 

@@ -8,6 +8,7 @@ import {
   Ecole,
   Commune
 } from '../models/eleve.model';
+import { RapportImport } from '../models/rapport-import.model';
 
 @Injectable({
   providedIn: 'root'
@@ -51,14 +52,15 @@ getCommunes(): Observable<Commune[]> {
   }
 
 
-  // Importer plusieurs élèves depuis un fichier CSV
-  importerCsv(file: File): Observable<string> {
+  /**
+   * POST /api/eleves/import (école) : multipart, champ `file`, réponse JSON. Aucun Content-Type
+   * n'est posé à la main : le navigateur ajoute la frontière du multipart.
+   */
+  importerCsv(file: File): Observable<RapportImport> {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post('/api/eleves/import', formData, {
-      responseType: 'text'
-    });
+    return this.http.post<RapportImport>('/api/eleves/import', formData);
   }
 
 }

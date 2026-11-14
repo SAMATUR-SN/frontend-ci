@@ -1,0 +1,31 @@
+<section class="message" [class.success]="reussi()" [class.warning]="!reussi()" role="status">
+  <strong>Importation terminée</strong>
+  <p class="resume">{{ resume() }}</p>
+
+  @if (rapport().erreurs.length > 0) {
+    <div class="table-wrapper">
+      <table class="rejets">
+        <caption class="sr-only">Lignes rejetées</caption>
+        <thead>
+          <tr>
+            <th>Ligne</th>
+            <th>Motif</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (rejet of rapport().erreurs; track $index) {
+            <tr>
+              <td>{{ rejet.ligne }}</td>
+              <td class="motif">{{ rejet.motif }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <div class="actions-rapport">
+    <button type="button" class="btn-secondaire" (click)="nouvelImport.emit()">Nouvel import</button>
+    <a routerLink="/dossiers" class="btn-lien">Voir les dossiers</a>
+  </div>
+</section>

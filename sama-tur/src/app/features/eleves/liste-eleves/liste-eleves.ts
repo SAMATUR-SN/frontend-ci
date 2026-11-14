@@ -128,9 +128,7 @@ export class ListeEleves implements OnInit {
         this.loading = false;
         this.cdr.markForCheck();
       },
-      error: (error) => {
-        console.error('Erreur API :', error);
-
+      error: () => {
         this.errorMessage =
           'Impossible de charger la liste des élèves.';
 

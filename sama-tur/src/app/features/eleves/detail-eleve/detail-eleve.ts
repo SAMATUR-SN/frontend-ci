@@ -1,7 +1,7 @@
 
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { EleveService } from '../../../core/services/eleve.service';
 import { Eleve, EleveRequest } from '../../../core/models/eleve.model';
@@ -49,7 +49,7 @@ function dateNonFuture(
 @Component({
   selector: 'app-detail-eleve',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './detail-eleve.html',
   styleUrl: './detail-eleve.scss'
 })
@@ -211,8 +211,6 @@ enregistrerModification(): void {
     },
 
     error: (error: HttpErrorResponse) => {
-      console.error('Erreur de modification :', error);
-
       this.enregistrementEnCours = false;
 
       this.errorMessage = this.obtenirMessageErreur(error);
@@ -260,8 +258,6 @@ supprimerEleve(): void {
     },
 
     error: (error: HttpErrorResponse) => {
-      console.error('Erreur lors de la suppression :', error);
-
       this.suppressionEnCours = false;
 
       this.errorMessage = this.obtenirMessageErreur(error);
@@ -298,8 +294,7 @@ supprimerEleve(): void {
         this.loading = false;
         this.cdr.markForCheck();
       },
-      error: (error) => {
-        console.error('Erreur lors du chargement du dossier :', error);
+      error: () => {
         this.errorMessage = 'Impossible de charger le dossier de cet élève.';
         this.loading = false;
         this.cdr.markForCheck();

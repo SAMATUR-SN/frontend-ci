@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import {
   FormBuilder,
@@ -62,7 +62,7 @@ function dateNonFuture(control: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-ajout-eleve',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './ajout-eleve.html',
   styleUrl: './ajout-eleve.scss'
 })
@@ -135,9 +135,7 @@ export class AjoutEleve implements OnInit {
         this.cdr.markForCheck();
       },
 
-      error: (error) => {
-        console.error('Erreur de chargement des référentiels :', error);
-
+      error: () => {
         this.errorMessage =
           'Impossible de charger les écoles et les communes. Réessayez.';
 
@@ -238,8 +236,6 @@ export class AjoutEleve implements OnInit {
       },
 
       error: (error: HttpErrorResponse) => {
-        console.error('Erreur lors de la création :', error);
-
         this.enregistrementEnCours = false;
 
         this.errorMessage = this.obtenirMessageErreur(error);

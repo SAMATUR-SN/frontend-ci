@@ -11,10 +11,6 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client
   },
   {
-    path: 'test-api',
-    renderMode: RenderMode.Client
-  },
-  {
     path: 'eleves',
     renderMode: RenderMode.Client
   },

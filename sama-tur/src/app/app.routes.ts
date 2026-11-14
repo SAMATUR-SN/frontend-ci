@@ -8,8 +8,6 @@ import { authGuard } from './core/guards/auth-guard';
 import { roleGuard } from './core/guards/role-guard';
 import { ROLES_ALERTES, ROLES_IMPORT } from './core/utils/acces';
 
-import { TestApi } from './features/eleves/test-api/test-api';
-
 import { ListeEleves } from './features/eleves/liste-eleves/liste-eleves';
 import { DetailEleve } from './features/eleves/detail-eleve/detail-eleve';
 import { AjoutEleve } from './features/eleves/ajout-eleve/ajout-eleve';
@@ -28,13 +26,6 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: Dashboard,
-    canActivate: [authGuard]
-  },
-
-  // ROUTE DE TEST
-  {
-    path: 'test-api',
-    component: TestApi,
     canActivate: [authGuard]
   },
 

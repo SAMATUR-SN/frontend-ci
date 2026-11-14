@@ -11,6 +11,9 @@ RUN npx ng build
 
 # Étape 2 : nginx sans privilèges (utilisateur non root, port 8080)
 FROM nginxinc/nginx-unprivileged:alpine
+USER root
+RUN apk upgrade --no-cache
+USER 101
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/sama-tur/browser /usr/share/nginx/html

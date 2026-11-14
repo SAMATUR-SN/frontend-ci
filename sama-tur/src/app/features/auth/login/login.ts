@@ -35,8 +35,7 @@ export class Login {
     this.errorMessage.set('');
 
     this.authService.login(this.loginForm.getRawValue()).subscribe({
-      next: (response) => {
-        console.log('Connexion réussie pour :', response.identifiant);
+      next: () => {
         this.loading.set(false);
         this.router.navigate(['/dashboard']);
       },

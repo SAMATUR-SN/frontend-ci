@@ -19,6 +19,7 @@ import { AlerteService } from '../../../core/services/alerte';
 import { Eleve } from '../../../core/models/eleve.model';
 import { Dossier, StatutDossier } from '../../../core/models/dossier.model';
 import { Alerte } from '../../../core/models/alerte.model';
+import { Role } from '../../../core/models/utilisateur.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -64,31 +65,28 @@ export class Dashboard {
   // INFORMATIONS DE L'UTILISATEUR CONNECTÉ
   
 
-  protected get roles(): string[] {
-    return this.tokenStorage.getRoles();
-  }
-
-  protected get identifiantUtilisateur(): string {
-    return this.tokenStorage.getUser()?.identifiant ?? 'Utilisateur';
+  protected get nomUtilisateur(): string {
+    return this.tokenStorage.getUtilisateur()?.nomAffiche ?? 'Utilisateur';
   }
 
   protected getRoleLabel(): string {
 
-    const labels: Record<string, string> = {
+    const labels: Record<Role, string> = {
       ECOLE: 'École',
       ETAT_CIVIL: 'État civil',
       TRIBUNAL: 'Tribunal',
-      SUPERVISEUR: 'Superviseur',
-      ADMIN: 'Administrateur'
+      SUPERVISEUR: 'Superviseur'
     };
 
-    return this.roles
-      .map(role => labels[role] ?? role)
-      .join(', ') || 'Rôle non défini';
+    const role = this.tokenStorage.getRole();
+
+    return role ? labels[role] : 'Rôle non défini';
   }
 
-  protected hasAnyRole(rolesAutorises: string[]): boolean {
-    return this.tokenStorage.hasRole(rolesAutorises);
+  protected hasAnyRole(rolesAutorises: Role[]): boolean {
+    const role = this.tokenStorage.getRole();
+
+    return role !== null && rolesAutorises.includes(role);
   }
 
   
@@ -98,8 +96,7 @@ export class Dashboard {
   protected get peutConsulterEleves(): boolean {
     return this.hasAnyRole([
       'ECOLE',
-      'SUPERVISEUR',
-      'ADMIN'
+      'SUPERVISEUR'
     ]);
   }
 

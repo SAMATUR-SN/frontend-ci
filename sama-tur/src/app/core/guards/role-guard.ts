@@ -19,7 +19,9 @@ export const roleGuard: CanActivateFn = (route) => {
     return router.createUrlTree(['/dashboard']);
   }
 
-  if (tokenStorage.hasRole(rolesAutorises)) {
+  const role = tokenStorage.getRole();
+
+  if (role !== null && rolesAutorises.includes(role)) {
     return true;
   }
 

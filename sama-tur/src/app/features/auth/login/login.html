@@ -45,8 +45,12 @@
       </div>
 
       @if (errorMessage()) {
-        <div class="error-message">
+        <div class="error-message" role="alert">
           {{ errorMessage() }}
+        </div>
+      } @else if (sessionExpiree()) {
+        <div class="info-message" role="status">
+          {{ messageSessionExpiree }}
         </div>
       }
 

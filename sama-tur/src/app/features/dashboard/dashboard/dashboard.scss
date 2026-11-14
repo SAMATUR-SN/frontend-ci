@@ -1,4 +1,3 @@
-
 :host {
   display: block;
   min-height: 100%;
@@ -29,25 +28,71 @@
   letter-spacing: 2px;
 }
 
-.header-text h1 {
-  margin: 0;
-  color: #142344;
-  font-size: clamp(28px, 3vw, 38px);
-  font-weight: 800;
-  letter-spacing: -1.3px;
-}
+.header-text {
+  h1 {
+    margin: 0;
+    color: #142344;
+    font-size: clamp(28px, 3vw, 38px);
+    font-weight: 800;
+    letter-spacing: -1.3px;
+  }
 
-.header-text p {
-  margin: 12px 0;
-  color: #71809a;
-  font-size: 15px;
-  line-height: 1.6;
+  p {
+    margin: 12px 0;
+    color: #71809a;
+    font-size: 15px;
+    line-height: 1.6;
+  }
 }
 
 .current-date {
   color: #526582;
   font-size: 13px;
   text-transform: capitalize;
+}
+
+.user-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #eef2ff;
+  font-size: 18px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  strong {
+    color: #1f2937;
+    font-size: 13px;
+  }
+
+  small {
+    color: #64748b;
+    font-size: 12px;
+  }
 }
 
 .header-actions {
@@ -61,6 +106,7 @@
   min-height: 43px;
   padding: 0 17px;
   border-radius: 9px;
+  background: #fff;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -69,49 +115,69 @@
 
 .refresh-button {
   border: 1px solid #dce4f1;
-  background: #fff;
   color: #28436d;
-}
 
-.refresh-button:hover {
-  background: #edf3ff;
-  border-color: #b8c9ed;
-}
+  &:hover {
+    border-color: #b8c9ed;
+    background: #edf3ff;
+  }
 
-.refresh-button:disabled {
-  opacity: 0.6;
-  cursor: wait;
+  &:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
 }
 
 .logout-button {
   border: 1px solid #f0d8d8;
-  background: #fff;
   color: #c04444;
-}
 
-.logout-button:hover {
-  background: #fff1f1;
+  &:hover {
+    background: #fff1f1;
+  }
 }
 
 .section-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 15px;
   margin-bottom: 19px;
+
+  h2 {
+    margin: 0 0 6px;
+    color: #172744;
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0;
+    color: #8793a8;
+    font-size: 13px;
+  }
 }
 
-.section-heading h2 {
-  margin: 0 0 6px;
-  color: #172744;
-  font-size: 20px;
-  font-weight: 800;
-}
+.filtre-commune {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 
-.section-heading p {
-  margin: 0;
-  color: #8793a8;
-  font-size: 13px;
+  label {
+    color: #526582;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  select {
+    min-width: 220px;
+    padding: 9px 10px;
+    border: 1px solid #dce4f1;
+    border-radius: 9px;
+    background: #fff;
+    font-size: 14px;
+  }
 }
 
 .stats-grid {
@@ -122,51 +188,14 @@
 }
 
 .stat-card {
-  position: relative;
-  overflow: hidden;
-  min-height: 180px;
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px 24px;
   border: 1px solid #e6ebf3;
   border-radius: 15px;
   background: #fff;
   box-shadow: 0 5px 18px rgba(31, 51, 84, 0.035);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(31, 51, 84, 0.08);
-}
-
-.stat-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.stat-icon {
-  display: grid;
-  width: 43px;
-  height: 43px;
-  place-items: center;
-  border-radius: 12px;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.students-card .stat-icon {
-  background: #eaf1ff;
-  color: #3264dc;
-}
-
-.dossiers-card .stat-icon {
-  background: #e9f8f2;
-  color: #15956b;
-}
-
-.alerts-card .stat-icon {
-  background: #fff3e5;
-  color: #e28a24;
 }
 
 .stat-label {
@@ -176,28 +205,76 @@
 }
 
 .stat-value {
-  display: block;
-  margin: 20px 0 13px;
   color: #172744;
-  font-size: 35px;
+  font-size: 33px;
   font-weight: 800;
 }
 
-.stat-link {
+.stat-hint {
+  color: #6b7a93;
+  font-size: 12px;
+}
+
+.stat-link,
+.view-all,
+.detail-link {
   color: #315dcc;
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
-.stat-link:hover,
-.view-all:hover,
-.detail-link:hover {
-  text-decoration: underline;
-}
-
+.repartition-section,
 .quick-section {
   margin-bottom: 42px;
+}
+
+.repartition {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 18px 22px;
+  border: 1px solid #e6ebf3;
+  border-radius: 15px;
+  background: #fff;
+  list-style: none;
+}
+
+.repartition-ligne {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 14px;
+  padding: 7px 0;
+  font-size: 13px;
+}
+
+.repartition-etape {
+  color: #53627b;
+}
+
+.barre {
+  display: block;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #edf0f5;
+}
+
+.barre-remplie {
+  display: block;
+  height: 100%;
+  background: #315dcc;
+}
+
+.repartition-nombre {
+  color: #172744;
+  text-align: right;
 }
 
 .quick-grid {
@@ -218,12 +295,11 @@
   color: inherit;
   text-decoration: none;
   transition: 0.2s ease;
-}
 
-.quick-card:hover {
-  transform: translateY(-2px);
-  border-color: #c4d3f4;
-  box-shadow: 0 7px 20px rgba(31, 51, 84, 0.06);
+  &:hover {
+    border-color: #c4d3f4;
+    box-shadow: 0 7px 20px rgba(31, 51, 84, 0.06);
+  }
 }
 
 .quick-icon {
@@ -244,16 +320,16 @@
   flex: 1;
   flex-direction: column;
   gap: 5px;
-}
 
-.quick-content strong {
-  color: #263753;
-  font-size: 14px;
-}
+  strong {
+    color: #263753;
+    font-size: 14px;
+  }
 
-.quick-content small {
-  color: #8793a8;
-  font-size: 12px;
+  small {
+    color: #6b7a93;
+    font-size: 12px;
+  }
 }
 
 .quick-arrow {
@@ -267,17 +343,6 @@
   border-radius: 15px;
   background: #fff;
   box-shadow: 0 5px 18px rgba(31, 51, 84, 0.035);
-}
-
-.recent-heading {
-  margin-bottom: 22px;
-}
-
-.view-all {
-  color: #315dcc;
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
 }
 
 .table-container {
@@ -320,7 +385,8 @@ tbody tr:last-child td {
   font-weight: 800;
 }
 
-.status-badge {
+.status-badge,
+.badge-retard {
   display: inline-block;
   padding: 6px 10px;
   border-radius: 20px;
@@ -330,15 +396,14 @@ tbody tr:last-child td {
   font-weight: 700;
 }
 
-.detail-link {
-  color: #315dcc;
-  font-weight: 700;
-  text-decoration: none;
+.badge-retard {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .empty-state {
   padding: 30px;
-  color: #8793a8;
+  color: #6b7a93;
   text-align: center;
 }
 
@@ -358,13 +423,13 @@ tbody tr:last-child td {
   gap: 15px;
   margin-top: 27px;
   padding: 17px 2px;
-  color: #98a3b5;
+  color: #6b7a93;
   font-size: 11px;
-}
 
-.dashboard-footer span:first-child {
-  color: #526582;
-  font-weight: 800;
+  span:first-child {
+    color: #526582;
+    font-weight: 800;
+  }
 }
 
 @media (max-width: 900px) {
@@ -400,59 +465,15 @@ tbody tr:last-child td {
     grid-template-columns: 1fr;
   }
 
-  .recent-section {
-    padding: 16px;
+  .repartition-ligne {
+    grid-template-columns: 110px minmax(0, 1fr) 36px;
   }
 
-  .recent-heading {
-    align-items: flex-start;
-    flex-direction: column;
+  .recent-section {
+    padding: 16px;
   }
 
   .dashboard-footer {
     flex-direction: column;
   }
-}
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.user-badge {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 14px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #ffffff;
-}
-
-.user-avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: #eef2ff;
-  font-size: 18px;
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.user-details strong {
-  font-size: 13px;
-  color: #1f2937;
-}
-
-.user-details small {
-  font-size: 12px;
-  color: #64748b;
 }

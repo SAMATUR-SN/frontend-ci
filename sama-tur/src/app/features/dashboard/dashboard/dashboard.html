@@ -1,7 +1,5 @@
-
 <main class="dashboard-container">
 
-  <!-- EN-TÊTE -->
   <header class="dashboard-header">
 
     <div class="header-text">
@@ -10,330 +8,238 @@
       <h1>Bienvenue sur Sama Tur</h1>
 
       <p>
-        Suivez les élèves et le traitement des dossiers d'état civil
+        Suivez le traitement des dossiers d'état civil des élèves
         depuis un seul espace.
       </p>
 
       <div class="user-info">
-
-        <span class="current-date">
-          {{ dateDuJour }}
-        </span>
+        <span class="current-date">{{ dateDuJour }}</span>
 
         <div class="user-badge">
-          <span class="user-avatar">👤</span>
+          <span class="user-avatar" aria-hidden="true">👤</span>
 
           <div class="user-details">
-            <strong>{{ nomUtilisateur }}</strong>
-            <small>{{ getRoleLabel() }}</small>
-            @if (structureUtilisateur) {
-              <small>{{ structureUtilisateur }}</small>
+            <strong>{{ utilisateur?.nomAffiche || 'Utilisateur' }}</strong>
+            <small>{{ libelleRole }}</small>
+            @if (utilisateur?.structure) {
+              <small>{{ utilisateur?.structure }}</small>
             }
           </div>
         </div>
-
       </div>
     </div>
 
     <div class="header-actions">
-
-      <button
-        class="refresh-button"
-        type="button"
-        (click)="chargerDonnees()"
-        [disabled]="loading">
-
+      <button class="refresh-button" type="button" (click)="actualiser()" [disabled]="enChargement()">
         <span aria-hidden="true">↻</span>
-
-        {{ loading ? 'Actualisation...' : 'Actualiser' }}
-
+        {{ enChargement() ? 'Actualisation...' : 'Actualiser' }}
       </button>
 
-      <button
-        class="logout-button"
-        type="button"
-        (click)="logout()">
-
+      <button class="logout-button" type="button" (click)="deconnecter()">
         Déconnexion
-
       </button>
-
     </div>
 
   </header>
 
-  <!-- MESSAGE D'ERREUR -->
-  @if (erreurChargement) {
-
-    <div class="error-banner">
+  @if (erreur()) {
+    <div class="error-banner" role="alert">
       Certaines données n'ont pas pu être chargées.
       Vérifiez la connexion au serveur puis actualisez.
     </div>
-
   }
 
-  <!-- VUE D'ENSEMBLE -->
   <section class="section-heading">
-
     <div>
       <h2>Vue d'ensemble</h2>
-      <p>Les indicateurs de votre activité</p>
+      <p>Les indicateurs du suivi des dossiers.</p>
     </div>
 
+    <div class="filtre-commune">
+      <label for="filtre-commune">Commune de naissance</label>
+      <select id="filtre-commune" #choixCommune (change)="choisirCommune(choixCommune.value)">
+        <option value="" [selected]="communeId() === null">Toutes les communes</option>
+        @for (commune of communes(); track commune.id) {
+          <option [value]="commune.id" [selected]="communeId() === commune.id">{{ commune.nom }}</option>
+        }
+      </select>
+    </div>
   </section>
 
-  <!-- STATISTIQUES -->
-  <section class="stats-grid">
+  <section class="stats-grid" aria-label="Indicateurs" [attr.aria-busy]="chargementIndicateurs()">
 
-    <!-- STATISTIQUES ÉLÈVES -->
-    @if (peutConsulterEleves) {
+    <article class="stat-card" id="i1">
+      <span class="stat-label">Jugements transcrits dans le délai cible</span>
+      @if (indicateurs(); as ind) {
+        @if (ind.i1PartTranscritsDansDelaiCible !== null) {
+          <strong class="stat-value">{{ ind.i1PartTranscritsDansDelaiCible * 100 | number: '1.1-1' }} %</strong>
+          <small class="stat-hint">Délai cible : {{ ind.delaiCibleJours }} jours après le jugement</small>
+        } @else {
+          <strong class="stat-value">—</strong>
+          <small class="stat-hint">Pas encore de donnée</small>
+        }
+      } @else {
+        <strong class="stat-value">—</strong>
+      }
+    </article>
 
-      <article class="stat-card students-card">
+    <article class="stat-card" id="i2">
+      <span class="stat-label">Délai médian détection → acte remis</span>
+      @if (indicateurs(); as ind) {
+        @if (ind.i2DelaiMedianJours !== null) {
+          <strong class="stat-value">{{ ind.i2DelaiMedianJours | number: '1.0-1' }} jours</strong>
+        } @else {
+          <strong class="stat-value">—</strong>
+          <small class="stat-hint">Pas encore de donnée</small>
+        }
+      } @else {
+        <strong class="stat-value">—</strong>
+      }
+    </article>
 
-        <div class="stat-top">
-          <div class="stat-icon">♙</div>
-          <span class="stat-label">Élèves inscrits</span>
-        </div>
+    <article class="stat-card" id="i3">
+      <span class="stat-label">Élèves de CM2 sans acte remis</span>
+      <strong class="stat-value">{{ indicateurs() ? (indicateurs()!.i3ElevesClasseExamenSansActe | number: '1.0-0') : '—' }}</strong>
+    </article>
 
-        <strong class="stat-value">
-          {{ loading ? '—' : nombreEleves }}
-        </strong>
+    <article class="stat-card" id="retard">
+      <span class="stat-label">Dossiers en retard</span>
+      <strong class="stat-value">{{ indicateurs() ? (indicateurs()!.dossiersEnRetard | number: '1.0-0') : '—' }}</strong>
+      @if (indicateurs(); as ind) {
+        <small class="stat-hint">Jugement non transcrit après {{ ind.delaiCibleJours }} jours</small>
+      }
+      @if (peutVoirAlertes) {
+        <a routerLink="/alertes" class="stat-link">Voir les dossiers en retard →</a>
+      }
+    </article>
 
-        <a routerLink="/eleves" class="stat-link">
-          Consulter les élèves →
-        </a>
-
-      </article>
-
-    }
-
-    <!-- STATISTIQUES DOSSIERS -->
-    @if (peutConsulterDossiers) {
-
-      <article class="stat-card dossiers-card">
-
-        <div class="stat-top">
-          <div class="stat-icon">▤</div>
-          <span class="stat-label">Total des dossiers</span>
-        </div>
-
-        <strong class="stat-value">
-          {{ loading ? '—' : nombreDossiers }}
-        </strong>
-
-        <a routerLink="/dossiers" class="stat-link">
-          Consulter les dossiers →
-        </a>
-
-      </article>
-
-    }
-
-    <!-- STATISTIQUES ALERTES -->
-    @if (peutGererAlertes) {
-
-      <article class="stat-card alerts-card">
-
-        <div class="stat-top">
-          <div class="stat-icon">♧</div>
-          <span class="stat-label">Alertes actives</span>
-        </div>
-
-        <strong class="stat-value">
-          {{ loading ? '—' : nombreAlertes }}
-        </strong>
-
-        <a routerLink="/alertes" class="stat-link">
-          Voir les alertes →
-        </a>
-
-      </article>
-
-    }
+    <article class="stat-card" id="total">
+      <span class="stat-label">Total des dossiers</span>
+      <strong class="stat-value">{{ indicateurs() ? (indicateurs()!.totalDossiers | number: '1.0-0') : '—' }}</strong>
+      <a routerLink="/dossiers" class="stat-link">Consulter les dossiers →</a>
+    </article>
 
   </section>
 
-  <!-- ACCÈS RAPIDE -->
-  <section class="quick-section">
-
+  <section class="repartition-section">
     <div class="section-heading">
+      <div>
+        <h2>Répartition par étape</h2>
+        <p>Nombre de dossiers à chaque étape du parcours.</p>
+      </div>
+    </div>
 
+    <ul class="repartition" aria-label="Dossiers par étape">
+      @for (ligne of repartition(); track ligne.etape) {
+        <li class="repartition-ligne">
+          <span class="repartition-etape">{{ libelleEtape(ligne.etape) }}</span>
+          <span class="barre" aria-hidden="true">
+            <span class="barre-remplie" [style.width.%]="ligne.part"></span>
+          </span>
+          <strong class="repartition-nombre">{{ ligne.nombre }}</strong>
+        </li>
+      } @empty {
+        <li class="empty-state">{{ chargementIndicateurs() ? 'Chargement...' : 'Répartition indisponible.' }}</li>
+      }
+    </ul>
+  </section>
+
+  <section class="quick-section">
+    <div class="section-heading">
       <div>
         <h2>Accès rapide</h2>
         <p>Accédez directement aux principales fonctionnalités.</p>
       </div>
-
     </div>
 
     <div class="quick-grid">
+      <a routerLink="/dossiers" class="quick-card">
+        <span class="quick-icon" aria-hidden="true">▤</span>
+        <span class="quick-content">
+          <strong>Suivre les dossiers</strong>
+          <small>Consulter leur progression et les faire avancer</small>
+        </span>
+        <span class="quick-arrow" aria-hidden="true">→</span>
+      </a>
 
-      <!-- AJOUTER UN ÉLÈVE -->
-      @if (peutCreerEleve) {
-
-        <a routerLink="/eleves/nouveau" class="quick-card">
-
-          <span class="quick-icon">＋</span>
-
-          <span class="quick-content">
-            <strong>Ajouter un élève</strong>
-            <small>Enregistrer un nouvel élève</small>
-          </span>
-
-          <span class="quick-arrow">→</span>
-
-        </a>
-
-      }
-
-      <!-- SUIVRE LES DOSSIERS -->
-      @if (peutConsulterDossiers) {
-
-        <a routerLink="/dossiers" class="quick-card">
-
-          <span class="quick-icon">▤</span>
-
-          <span class="quick-content">
-            <strong>Suivre les dossiers</strong>
-            <small>Consulter leur progression</small>
-          </span>
-
-          <span class="quick-arrow">→</span>
-
-        </a>
-
-      }
-
-      <!-- GÉRER LES ALERTES -->
-      @if (peutGererAlertes) {
-
+      @if (peutVoirAlertes) {
         <a routerLink="/alertes" class="quick-card">
-
-          <span class="quick-icon">♧</span>
-
+          <span class="quick-icon" aria-hidden="true">♧</span>
           <span class="quick-content">
-            <strong>Gérer les alertes</strong>
-            <small>Identifier les retards</small>
+            <strong>Alertes de retard</strong>
+            <small>Identifier les dossiers jugés mais non transcrits</small>
           </span>
-
-          <span class="quick-arrow">→</span>
-
+          <span class="quick-arrow" aria-hidden="true">→</span>
         </a>
-
       }
 
+      @if (peutImporter) {
+        <a routerLink="/eleves/import" class="quick-card">
+          <span class="quick-icon" aria-hidden="true">＋</span>
+          <span class="quick-content">
+            <strong>Importer des élèves</strong>
+            <small>Ajouter des élèves depuis un fichier CSV</small>
+          </span>
+          <span class="quick-arrow" aria-hidden="true">→</span>
+        </a>
+      }
     </div>
-
   </section>
 
-  <!-- DOSSIERS RÉCENTS -->
-  @if (peutConsulterDossiers) {
-
-    <section class="recent-section">
-
-      <div class="section-heading recent-heading">
-
-        <div>
-          <h2>Dossiers récents</h2>
-          <p>Les cinq premiers dossiers retournés par le serveur.</p>
-        </div>
-
-        <a routerLink="/dossiers" class="view-all">
-          Voir tous les dossiers →
-        </a>
-
+  <section class="recent-section">
+    <div class="section-heading recent-heading">
+      <div>
+        <h2>Derniers dossiers</h2>
+        <p>Les cinq dossiers détectés le plus récemment.</p>
       </div>
 
-      <div class="table-container">
+      <a routerLink="/dossiers" class="view-all">Voir tous les dossiers →</a>
+    </div>
 
-        <table>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Référence</th>
+            <th>Élève</th>
+            <th>Étape actuelle</th>
+            <th>Dernière étape</th>
+            <th>Retard</th>
+            <th>Action</th>
+          </tr>
+        </thead>
 
-          <thead>
-            <tr>
-              <th>Référence</th>
-              <th>Élève</th>
-              <th>Étape actuelle</th>
-              <th>Date de détection</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-
-          <tbody>
-
-            @if (loading) {
-
+        <tbody>
+          @if (chargementRecents()) {
+            <tr><td colspan="6" class="empty-state">Chargement des dossiers...</td></tr>
+          } @else {
+            @for (dossier of recents(); track dossier.id) {
               <tr>
-                <td colspan="5" class="empty-state">
-                  Chargement des dossiers...
+                <td class="reference-cell">{{ dossier.reference }}</td>
+                <td>{{ dossier.eleve.prenom }} {{ dossier.eleve.nom }}</td>
+                <td><span class="status-badge">{{ libelleEtape(dossier.etape) }}</span></td>
+                <td>{{ formaterDate(dossier.dateDerniereEtape) }}</td>
+                <td>
+                  @if (dossier.enRetard) {
+                    <span class="badge-retard">En retard</span>
+                  }
+                </td>
+                <td>
+                  <a [routerLink]="['/dossiers', dossier.id]" class="detail-link">Détails →</a>
                 </td>
               </tr>
-
-            } @else {
-
-              @for (dossier of dossiersRecents; track dossier.id) {
-
-                <tr>
-
-                  <td class="reference-cell">
-                    {{ dossier.reference }}
-                  </td>
-
-                  <td>
-                    {{ getNomEleve(dossier) }}
-                  </td>
-
-                  <td>
-                    <span class="status-badge">
-                      {{ getStatutLabel(dossier.etape) }}
-                    </span>
-                  </td>
-
-                  <td>
-                    {{ formaterDate(dossier.dateDetection) }}
-                  </td>
-
-                  <td>
-                    <a
-                      [routerLink]="['/dossiers', dossier.id]"
-                      class="detail-link">
-
-                      Détails →
-
-                    </a>
-                  </td>
-
-                </tr>
-
-              } @empty {
-
-                <tr>
-                  <td colspan="5" class="empty-state">
-                    Aucun dossier disponible pour le moment.
-                  </td>
-                </tr>
-
-              }
-
+            } @empty {
+              <tr><td colspan="6" class="empty-state">Aucun dossier disponible pour le moment.</td></tr>
             }
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-          </tbody>
-
-        </table>
-
-      </div>
-
-    </section>
-
-  }
-
-  <!-- PIED DE PAGE -->
   <footer class="dashboard-footer">
-
     <span>Sama Tur</span>
-
-    <span>
-      Plateforme de suivi des dossiers d'état civil
-    </span>
-
+    <span>Plateforme de suivi des dossiers d'état civil</span>
   </footer>
 
 </main>

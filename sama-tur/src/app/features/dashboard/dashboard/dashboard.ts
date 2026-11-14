@@ -1,277 +1,156 @@
-
-import {
-  Component,
-  inject,
-  ChangeDetectorRef
-} from '@angular/core';
-
+import { DecimalPipe } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { EMPTY, Subject, catchError, of, switchMap } from 'rxjs';
 
-import { forkJoin, of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
-
+import { DossierResume, ETAPES } from '../../../core/models/dossier.model';
+import { Indicateurs } from '../../../core/models/indicateurs.model';
+import { Option } from '../../../core/models/referentiel.model';
 import { AuthService } from '../../../core/services/auth.service';
-import { TokenStorage } from '../../../core/services/token-storage';
-import { EleveService } from '../../../core/services/eleve.service';
 import { DossierService } from '../../../core/services/dossier';
-import { AlerteService } from '../../../core/services/alerte';
-
-import { Eleve } from '../../../core/models/eleve.model';
-import { Dossier, StatutDossierAncien } from '../../../core/models/dossier.model';
-import { Alerte } from '../../../core/models/alerte.model';
-import { Role } from '../../../core/models/utilisateur.model';
+import { IndicateursService } from '../../../core/services/indicateurs.service';
+import { ReferentielService } from '../../../core/services/referentiel.service';
+import { TokenStorage } from '../../../core/services/token-storage';
+import { ROLES_ALERTES, ROLES_IMPORT, roleAutorise } from '../../../core/utils/acces';
+import { formaterDate } from '../../../core/utils/dates';
+import { libelleEtape } from '../../../core/utils/etapes';
+import { libelleRole } from '../../../core/utils/roles';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, DecimalPipe],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss'
+  styleUrl: './dashboard.scss',
 })
 export class Dashboard {
-
-  // Services
   private readonly authService = inject(AuthService);
   private readonly tokenStorage = inject(TokenStorage);
   private readonly router = inject(Router);
-
-  private readonly eleveService = inject(EleveService);
+  private readonly indicateursService = inject(IndicateursService);
   private readonly dossierService = inject(DossierService);
-  private readonly alerteService = inject(AlerteService);
+  private readonly referentiel = inject(ReferentielService);
 
-  private readonly cdr = inject(ChangeDetectorRef);
+  // Utilisateur connecté
+  private readonly role = this.tokenStorage.getRole();
+  protected readonly utilisateur = this.tokenStorage.getUtilisateur();
+  protected readonly libelleRole = this.role ? libelleRole(this.role) : 'Rôle non défini';
+  protected readonly peutVoirAlertes = roleAutorise(this.role, ROLES_ALERTES);
+  protected readonly peutImporter = roleAutorise(this.role, ROLES_IMPORT);
 
-  // Statistiques
-  protected nombreEleves = 0;
-  protected nombreDossiers = 0;
-  protected nombreAlertes = 0;
-
-  // Dossiers récents
-  protected dossiersRecents: Dossier[] = [];
-
-  // État du dashboard
-  protected loading = false;
-  protected erreurChargement = false;
-
-  // Date actuelle
   protected readonly dateDuJour = new Intl.DateTimeFormat('fr-FR', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
   }).format(new Date());
 
-  
-  // INFORMATIONS DE L'UTILISATEUR CONNECTÉ
-  
+  protected readonly libelleEtape = libelleEtape;
+  protected readonly formaterDate = formaterDate;
 
-  protected get nomUtilisateur(): string {
-    return this.tokenStorage.getUtilisateur()?.nomAffiche ?? 'Utilisateur';
-  }
+  // Chiffres : une seule requête (GET /api/indicateurs), filtrée par commune de naissance.
+  protected readonly communes = signal<Option[]>([]);
+  protected readonly communeId = signal<number | null>(null);
+  protected readonly indicateurs = signal<Indicateurs | null>(null);
+  protected readonly chargementIndicateurs = signal(false);
+  protected readonly erreurIndicateurs = signal(false);
 
-  // Absente (null) pour le superviseur.
-  protected get structureUtilisateur(): string | null {
-    return this.tokenStorage.getUtilisateur()?.structure ?? null;
-  }
+  // Les cinq derniers dossiers
+  protected readonly recents = signal<DossierResume[]>([]);
+  protected readonly chargementRecents = signal(false);
+  protected readonly erreurRecents = signal(false);
 
-  protected getRoleLabel(): string {
+  protected readonly enChargement = computed(
+    () => this.chargementIndicateurs() || this.chargementRecents(),
+  );
+  protected readonly erreur = computed(() => this.erreurIndicateurs() || this.erreurRecents());
 
-    const labels: Record<Role, string> = {
-      ECOLE: 'École',
-      ETAT_CIVIL: 'État civil',
-      TRIBUNAL: 'Tribunal',
-      SUPERVISEUR: 'Superviseur'
-    };
-
-    const role = this.tokenStorage.getRole();
-
-    return role ? labels[role] : 'Rôle non défini';
-  }
-
-  protected hasAnyRole(rolesAutorises: Role[]): boolean {
-    const role = this.tokenStorage.getRole();
-
-    return role !== null && rolesAutorises.includes(role);
-  }
-
-  
-  // GESTION DES AUTORISATIONS
-  
-  // Consultation des élèves
-  protected get peutConsulterEleves(): boolean {
-    return this.hasAnyRole([
-      'ECOLE',
-      'SUPERVISEUR'
-    ]);
-  }
-
-  // Consultation des dossiers
-  protected get peutConsulterDossiers(): boolean {
-    return this.hasAnyRole([
-      'ECOLE',
-      'ETAT_CIVIL',
-      'TRIBUNAL',
-      'SUPERVISEUR'
-    ]);
-  }
-
-  // Création d'un élève
-  protected get peutCreerEleve(): boolean {
-    return this.hasAnyRole([
-      'ECOLE',
-      'SUPERVISEUR'
-    ]);
-  }
-
-  // Consultation et gestion des alertes
-  // Le backend autorise tout utilisateur authentifié.
-  protected get peutGererAlertes(): boolean {
-    return this.tokenStorage.getToken() !== null;
-  }
-
- 
-  // INITIALISATION
-  
-  constructor() {
-    this.chargerDonnees();
-  }
-
-  
-  // CHARGEMENT DES DONNÉES DU DASHBOARD
-  
-
-  protected chargerDonnees(): void {
-
-    this.loading = true;
-    this.erreurChargement = false;
-
-    // Récupération des élèves selon les permissions
-    const requeteEleves = this.peutConsulterEleves
-      ? this.eleveService.getAll().pipe(
-          catchError(erreur => {
-            console.error('Erreur chargement élèves :', erreur);
-            this.erreurChargement = true;
-            return of([] as Eleve[]);
-          })
-        )
-      : of([] as Eleve[]);
-
-    // Récupération des dossiers selon les permissions
-    const requeteDossiers = this.peutConsulterDossiers
-      ? this.dossierService.getAll().pipe(
-          catchError(erreur => {
-            console.error('Erreur chargement dossiers :', erreur);
-            this.erreurChargement = true;
-            return of([] as Dossier[]);
-          })
-        )
-      : of([] as Dossier[]);
-
-    // Les alertes sont accessibles à tout utilisateur authentifié
-    const requeteAlertes = this.peutGererAlertes
-      ? this.alerteService.getAll().pipe(
-          catchError(erreur => {
-            console.error('Erreur chargement alertes :', erreur);
-            this.erreurChargement = true;
-            return of([] as Alerte[]);
-          })
-        )
-      : of([] as Alerte[]);
-
-    // Exécution des trois requêtes
-    forkJoin({
-
-      eleves: requeteEleves,
-
-      dossiers: requeteDossiers,
-
-      alertes: requeteAlertes
-
-    }).pipe(
-
-      finalize(() => {
-        this.loading = false;
-        this.cdr.markForCheck();
-      })
-
-    ).subscribe({
-
-      next: resultats => {
-
-        console.log('DONNÉES DU DASHBOARD :', resultats);
-
-        this.nombreEleves = resultats.eleves.length;
-        this.nombreDossiers = resultats.dossiers.length;
-        this.nombreAlertes = resultats.alertes.length;
-
-        this.dossiersRecents = resultats.dossiers.slice(0, 5);
-
-        this.cdr.markForCheck();
-      },
-
-      error: erreur => {
-
-        console.error('Erreur générale Dashboard :', erreur);
-
-        this.erreurChargement = true;
-
-        this.cdr.markForCheck();
-      }
-
-    });
-  }
-
-  
-  // TRADUCTION DES STATUTS DES DOSSIERS
-  
-
-  protected getStatutLabel(statut: StatutDossierAncien): string {
-
-    const labels: Record<StatutDossierAncien, string> = {
-      DETECTE: 'Détecté',
-      CERTIFICAT_OBTENU: 'Certificat obtenu',
-      CERTIFICAT_ETABLI: 'Certificat établi',
-      DOSSIER_COMPLET: 'Dossier complet',
-      JUGEMENT_RENDU: 'Jugement rendu',
-      TRANSCRIT: 'Transcrit',
-      ACTE_REMIS: 'Acte remis'
-    };
-
-    return labels[statut] ?? statut;
-  }
-
-  
-  // RÉCUPÉRATION DU NOM DE L'ÉLÈVE
-  
-
-  protected getNomEleve(dossier: Dossier): string {
-
-    return `${dossier.eleve?.prenom ?? ''} ${dossier.eleve?.nom ?? ''}`.trim()
-      || 'Élève non renseigné';
-  }
-
-  
-  // FORMATAGE DES DATES
-  
-
-  protected formaterDate(date: string | null): string {
-
-    if (!date) {
-      return 'Non renseignée';
+  /** Les six étapes, toujours : une étape absente de la réponse vaut 0. */
+  protected readonly repartition = computed(() => {
+    const indicateurs = this.indicateurs();
+    if (!indicateurs) {
+      return [];
     }
+    const total = indicateurs.totalDossiers;
 
-    return new Intl.DateTimeFormat('fr-FR').format(new Date(date));
+    return ETAPES.map((etape) => {
+      const nombre = indicateurs.dossiersParEtape[etape] ?? 0;
+      return { etape, nombre, part: total > 0 ? (nombre / total) * 100 : 0 };
+    });
+  });
+
+  private readonly chargerIndicateurs$ = new Subject<void>();
+  private readonly chargerRecents$ = new Subject<void>();
+
+  constructor() {
+    this.chargerRecents$
+      .pipe(
+        switchMap(() => {
+          this.chargementRecents.set(true);
+          this.erreurRecents.set(false);
+
+          // Les cinq derniers dossiers, tous périmètres confondus.
+          return this.dossierService.lister({}, 0, 5).pipe(
+            catchError(() => {
+              this.erreurRecents.set(true);
+              this.chargementRecents.set(false);
+              return EMPTY;
+            }),
+          );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((page) => {
+        this.recents.set(page.contenu);
+        this.chargementRecents.set(false);
+      });
+
+    // switchMap : changer de commune avant la réponse abandonne la requête précédente.
+    this.chargerIndicateurs$
+      .pipe(
+        switchMap(() => {
+          this.chargementIndicateurs.set(true);
+          this.erreurIndicateurs.set(false);
+
+          return this.indicateursService.obtenir(this.communeId()).pipe(
+            catchError(() => {
+              this.erreurIndicateurs.set(true);
+              this.chargementIndicateurs.set(false);
+              return EMPTY;
+            }),
+          );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((indicateurs) => {
+        this.indicateurs.set(indicateurs);
+        this.chargementIndicateurs.set(false);
+      });
+
+    this.referentiel
+      .communes()
+      .pipe(
+        catchError(() => of([] as Option[])),
+        takeUntilDestroyed(),
+      )
+      .subscribe((communes) => this.communes.set(communes));
+
+    this.actualiser();
   }
 
-  
-  // DÉCONNEXION
-  
+  protected actualiser(): void {
+    this.chargerIndicateurs$.next();
+    this.chargerRecents$.next();
+  }
 
-  protected logout(): void {
+  protected choisirCommune(valeur: string): void {
+    this.communeId.set(valeur ? Number(valeur) : null);
+    this.chargerIndicateurs$.next();
+  }
 
+  protected deconnecter(): void {
     this.authService.logout();
-
-    this.router.navigate(['/login']);
+    void this.router.navigate(['/login']);
   }
-
 }

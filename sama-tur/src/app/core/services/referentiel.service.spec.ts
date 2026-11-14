@@ -40,6 +40,22 @@ describe('ReferentielService', () => {
     expect(recues).toEqual([{ id: 2, code: 'ECO-BAM-01', nom: 'École test', communeId: 1 }]);
   });
 
+  it.each([
+    ['centres', '/api/referentiels/centres'],
+    ['tribunaux', '/api/referentiels/tribunaux'],
+  ] as const)('demande les %s à %s, une seule fois pour la session', (liste, url) => {
+    let premiere: unknown;
+    let seconde: unknown;
+
+    service[liste]().subscribe((l) => (premiere = l));
+    http.expectOne(url).flush([{ id: 1, nom: 'Premier' }]);
+    service[liste]().subscribe((l) => (seconde = l));
+
+    http.expectNone(url);
+    expect(premiere).toEqual([{ id: 1, nom: 'Premier' }]);
+    expect(seconde).toEqual(premiere);
+  });
+
   it('ne rappelle pas le backend : la liste est mémorisée pour la session', () => {
     service.communes().subscribe();
     http.expectOne('/api/referentiels/communes').flush([{ id: 1, nom: 'Bambey' }]);

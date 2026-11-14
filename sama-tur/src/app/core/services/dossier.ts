@@ -4,10 +4,11 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import {
+  AvancerDossierRequest,
   Dossier,
+  DossierDetail,
   DossierResume,
   FiltreDossiers,
-  HistoriqueDossier,
   TriDossiers
 } from '../models/dossier.model';
 import { Page } from '../models/page.model';
@@ -57,23 +58,13 @@ export class DossierService {
     return this.http.get<Dossier[]>(this.apiUrl);
   }
 
-  /** @deprecated Remplacée par trouver (bloc 2b). */
-  getById(id: number): Observable<Dossier> {
-    return this.http.get<Dossier>(`${this.apiUrl}/${id}`);
+  /** GET /api/dossiers/{id} : le détail, historique compris (une seule requête). */
+  trouver(id: number): Observable<DossierDetail> {
+    return this.http.get<DossierDetail>(`${this.apiUrl}/${id}`);
   }
 
-  /** @deprecated Envoie un corps vide ; le backend exige etapeCible et les champs de l'étape (bloc 2b). */
-  avancer(id: number): Observable<Dossier> {
-    return this.http.post<Dossier>(
-      `${this.apiUrl}/${id}/avancer`,
-      {}
-    );
-   }
-
-  /** @deprecated Cette route n'existe pas : l'historique est dans le détail du dossier (bloc 2b). */
-  getHistorique(id: number): Observable<HistoriqueDossier[]> {
-  return this.http.get<HistoriqueDossier[]>(
-    `${this.apiUrl}/${id}/historique`
-  );
-}
+  /** POST /api/dossiers/{id}/avancer : la réponse est le dossier complet, à l'étape suivante. */
+  avancer(id: number, requete: AvancerDossierRequest): Observable<DossierDetail> {
+    return this.http.post<DossierDetail>(`${this.apiUrl}/${id}/avancer`, requete);
+  }
 }

@@ -15,7 +15,6 @@ import { AjoutEleve } from './features/eleves/ajout-eleve/ajout-eleve';
 import { ImportEleves } from './features/eleves/import-eleves/import-eleves';
 
 import { ListeDossiers } from './features/dossiers/liste-dossiers/liste-dossiers';
-import { DetailDossier } from './features/dossiers/detail-dossier/detail-dossier';
 
 import { ListeAlertes } from './features/alertes/liste-alertes/liste-alertes';
 
@@ -83,7 +82,9 @@ export const routes: Routes = [
 
   {
     path: 'dossiers/:id',
-    component: DetailDossier,
+    // Chargée à la demande : la fiche et son formulaire n'alourdissent pas le bundle initial.
+    loadComponent: () =>
+      import('./features/dossiers/detail-dossier/detail-dossier').then((m) => m.DetailDossier),
     canActivate: [authGuard]
   },
 

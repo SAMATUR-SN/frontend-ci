@@ -1,0 +1,22 @@
+<ol class="frise" aria-label="Progression du dossier">
+  @for (e of etapes; track e.code; let i = $index) {
+    <li
+      class="etape"
+      [class.faite]="i < rangCourant()"
+      [class.courante]="i === rangCourant()"
+      [attr.aria-current]="i === rangCourant() ? 'step' : null"
+    >
+      <span class="pastille" aria-hidden="true">{{ i < rangCourant() ? '✓' : i + 1 }}</span>
+      <span class="libelle">{{ e.libelle }}</span>
+      <span class="sr-only">
+        {{
+          i < rangCourant()
+            ? ', étape franchie'
+            : i === rangCourant()
+              ? ', étape actuelle'
+              : ', à venir'
+        }}
+      </span>
+    </li>
+  }
+</ol>

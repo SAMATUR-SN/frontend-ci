@@ -1,129 +1,99 @@
-
-import {
-  Component,
-  OnInit,
-  ChangeDetectorRef,
-  inject
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
+import { DossierDetail } from '../../../core/models/dossier.model';
 import { DossierService } from '../../../core/services/dossier';
-import { Dossier , HistoriqueDossier} from '../../../core/models/dossier.model';
+import { formaterDate, formaterDateHeure } from '../../../core/utils/dates';
+import { libelleEtape, rangEtape } from '../../../core/utils/etapes';
+import { libelleAudience, libellePreuve, libelleSexe } from '../../../core/utils/libelles';
+import { extraireProbleme } from '../../../core/utils/probleme';
+import { libelleRoleHistorique } from '../../../core/utils/roles';
+import { AvancementDossier } from '../avancement-dossier/avancement-dossier';
+import { FriseEtapes } from '../frise-etapes/frise-etapes';
+
+/** Rang à partir duquel chaque bloc de données existe : un bloc par étape franchie. */
+const RANG_CERTIFICAT = 1;
+const RANG_PREUVE = 2;
+const RANG_JUGEMENT = 3;
+const RANG_TRANSCRIPTION = 4;
+const RANG_REMISE = 5;
+
+function messagePourStatut(status: number): string {
+  if (status === 404) {
+    return 'Ce dossier est introuvable : il a peut-être été archivé.';
+  }
+  if (status === 403) {
+    return 'Votre rôle ne permet pas de consulter ce dossier.';
+  }
+  if (status === 0) {
+    return 'Serveur injoignable. Vérifiez la connexion, puis réessayez.';
+  }
+  return 'Impossible de charger les informations du dossier.';
+}
 
 @Component({
   selector: 'app-detail-dossier',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink, FriseEtapes, AvancementDossier],
   templateUrl: './detail-dossier.html',
-  styleUrl: './detail-dossier.scss'
+  styleUrl: './detail-dossier.scss',
 })
-export class DetailDossier implements OnInit {
-
+export class DetailDossier {
   private readonly dossierService = inject(DossierService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly id = Number(inject(ActivatedRoute).snapshot.paramMap.get('id'));
 
-  dossier: Dossier | null = null;
-  chargement = false;
-  messageErreur = '';
-  avancementEnCours = false;
-  messageSucces = '';
-  historique: HistoriqueDossier[] = [];
-  chargementHistorique = false;
-  erreurHistorique = '';
+  protected readonly idValide = Number.isInteger(this.id) && this.id > 0;
 
-  ngOnInit(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
+  protected readonly dossier = signal<DossierDetail | null>(null);
+  protected readonly chargement = signal(false);
+  protected readonly messageErreur = signal('');
 
-    if (!Number.isInteger(id) || id <= 0) {
-      this.messageErreur = 'Identifiant du dossier invalide.';
-      return;
-    }
-
-    this.chargerDossier(id);
-  }
-
-    avancerDossier(): void {
-    if (!this.dossier || this.avancementEnCours) {
-      return;
-    }
-
-    this.avancementEnCours = true;
-    this.messageErreur = '';
-    this.messageSucces = '';
-
-    this.dossierService.avancer(this.dossier.id).subscribe({
-      next: (dossierActualise) => {
-        this.dossier = dossierActualise;
-        this.chargerHistorique(dossierActualise.id);
-        this.messageSucces = 'Le dossier a avancé avec succès.';
-        this.avancementEnCours = false;
-        this.cdr.markForCheck();
-      },
-      error: (erreur) => {
-        console.error('Erreur lors de l’avancement :', erreur);
-
-        this.messageErreur =
-          erreur.status === 401
-            ? 'Votre session a expiré.'
-            : erreur.status === 403
-              ? 'Votre rôle ne permet pas de faire avancer ce dossier.'
-              : erreur.status === 400
-                ? 'Cette transition est impossible selon les règles du dossier.'
-                : 'Impossible de faire avancer le dossier.';
-
-        this.avancementEnCours = false;
-        this.cdr.markForCheck();
-      }
-    });
-  }
-  
-
-  chargerDossier(id: number): void {
-    this.chargement = true;
-    this.messageErreur = '';
-
-    this.dossierService.getById(id).subscribe({
-      next: (resultat) => {
-        this.dossier = resultat;
-        this.chargerHistorique(resultat.id);
-        this.chargement = false;
-        this.cdr.markForCheck();
-      },
-      error: (erreur) => {
-        console.error('Erreur lors du chargement du dossier :', erreur);
-
-        this.messageErreur =
-          erreur.status === 404
-            ? 'Ce dossier est introuvable.'
-            : erreur.status === 401
-              ? 'Votre session a expiré.'
-              : 'Impossible de charger les informations du dossier.';
-
-        this.chargement = false;
-        this.cdr.markForCheck();
-      }
-      
-    });
-  }
-  chargerHistorique(id: number): void {
-  this.chargementHistorique = true;
-  this.erreurHistorique = '';
-
-  this.dossierService.getHistorique(id).subscribe({
-    next: (resultats) => {
-      this.historique = resultats;
-      this.chargementHistorique = false;
-      this.cdr.markForCheck();
-    },
-    error: (erreur) => {
-      console.error('Erreur historique :', erreur);
-      this.erreurHistorique =
-        'Impossible de charger l’historique du dossier.';
-      this.chargementHistorique = false;
-      this.cdr.markForCheck();
-    }
+  protected readonly rang = computed(() => {
+    const dossier = this.dossier();
+    return dossier ? rangEtape(dossier.etape) : -1;
   });
-}
+  protected readonly aCertificat = computed(() => this.rang() >= RANG_CERTIFICAT);
+  protected readonly aPreuve = computed(() => this.rang() >= RANG_PREUVE);
+  protected readonly aJugement = computed(() => this.rang() >= RANG_JUGEMENT);
+  protected readonly aTranscription = computed(() => this.rang() >= RANG_TRANSCRIPTION);
+  protected readonly aRemise = computed(() => this.rang() >= RANG_REMISE);
+
+  protected readonly libelleEtape = libelleEtape;
+  protected readonly libellePreuve = libellePreuve;
+  protected readonly libelleAudience = libelleAudience;
+  protected readonly libelleSexe = libelleSexe;
+  protected readonly libelleRole = libelleRoleHistorique;
+  protected readonly formaterDate = formaterDate;
+  protected readonly formaterDateHeure = formaterDateHeure;
+
+  constructor() {
+    if (!this.idValide) {
+      this.messageErreur.set('Identifiant du dossier invalide.');
+      return;
+    }
+
+    this.charger();
+  }
+
+  /** Une seule requête : l'historique est dans le détail. */
+  protected charger(): void {
+    this.chargement.set(true);
+    this.messageErreur.set('');
+
+    this.dossierService.trouver(this.id).subscribe({
+      next: (dossier) => {
+        this.dossier.set(dossier);
+        this.chargement.set(false);
+      },
+      error: (erreur) => {
+        this.messageErreur.set(messagePourStatut(extraireProbleme(erreur).status));
+        this.chargement.set(false);
+      },
+    });
+  }
+
+  /** La réponse complète du backend remplace le dossier affiché. */
+  protected remplacer(dossier: DossierDetail): void {
+    this.dossier.set(dossier);
+  }
 }

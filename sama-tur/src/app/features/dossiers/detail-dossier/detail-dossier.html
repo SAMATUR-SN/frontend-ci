@@ -1,4 +1,3 @@
-
 <div class="page-container">
 
   <div class="page-header">
@@ -12,229 +11,237 @@
     </div>
   </div>
 
-  <!-- Chargement -->
-  <div *ngIf="chargement" class="message-info">
-    Chargement du dossier...
-  </div>
+  @if (chargement() && !dossier()) {
+    <div class="message-info">Chargement du dossier...</div>
+  }
 
-  <!-- Erreur -->
-  <div *ngIf="messageErreur" class="message-error">
-    {{ messageErreur }}
-  </div>
-
-  <!-- Informations du dossier -->
-  <div *ngIf="dossier as d" class="details-container">
-
-    <div class="summary-card">
-      <div>
-        <span class="label">Référence du dossier</span>
-        <h2>{{ d.reference }}</h2>
-      </div>
-
-      <div>
-        <span class="label">Étape actuelle</span>
-        <span class="status-badge">
-          {{ d.etape }}
-        </span>
-      </div>
+  @if (messageErreur()) {
+    <div class="message-error" role="alert">
+      {{ messageErreur() }}
+      @if (idValide && !dossier()) {
+        <button type="button" (click)="charger()">Réessayer</button>
+      }
     </div>
-    <div class="action-card">
-      <div>
-        <h3>Faire avancer le dossier</h3>
-        <p>
-          Demander au système de passer le dossier à la prochaine étape autorisée.
-        </p>
+  }
+
+  @if (dossier(); as d) {
+    <div class="details-container">
+
+      <div class="summary-card">
+        <div>
+          <span class="label">Référence du dossier</span>
+          <h2>{{ d.reference }}</h2>
+        </div>
+
+        <div>
+          <span class="label">Étape actuelle</span>
+          <span class="status-badge">{{ libelleEtape(d.etape) }}</span>
+          @if (d.enRetard) {
+            <span class="badge-retard">
+              En retard@if (d.joursDepuisJugement != null) { : {{ d.joursDepuisJugement }} jours depuis le jugement}
+            </span>
+          }
+        </div>
       </div>
 
-      <button
-        type="button"
-        class="btn-advance"
-        (click)="avancerDossier()"
-        [disabled]="avancementEnCours">
-        {{ avancementEnCours ? 'Traitement...' : 'Avancer le dossier →' }}
-      </button>
+      <app-frise-etapes [etape]="d.etape" />
+
+      <app-avancement-dossier [dossier]="d" (avance)="remplacer($event)" (conflit)="charger()" />
+
+      <section class="detail-card">
+        <h3>Informations de l'élève</h3>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <span>Nom</span>
+            <strong>{{ d.eleve.nom }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Prénom</span>
+            <strong>{{ d.eleve.prenom }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Sexe</span>
+            <strong>{{ libelleSexe(d.eleve.sexe) }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Date de naissance</span>
+            <strong>
+              {{ formaterDate(d.eleve.dateNaissance) }}{{ d.eleve.dateNaissancePresumee ? ' (présumée)' : '' }}
+            </strong>
+          </div>
+          <div class="info-item">
+            <span>Commune de naissance</span>
+            <strong>{{ d.eleve.communeNaissance || 'Non renseignée' }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Classe</span>
+            <strong>{{ d.eleve.classe }}</strong>
+          </div>
+          <div class="info-item">
+            <span>École</span>
+            <strong>{{ d.eleve.ecole || 'Non renseignée' }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Mère</span>
+            <strong>{{ d.eleve.nomMere || 'Non renseignée' }}</strong>
+          </div>
+          @if (d.eleve.nomPere) {
+            <div class="info-item">
+              <span>Père</span>
+              <strong>{{ d.eleve.nomPere }}</strong>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="detail-card">
+        <h3>Détection</h3>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <span>Date de détection</span>
+            <strong>{{ formaterDate(d.dateDetection) }}</strong>
+          </div>
+        </div>
+      </section>
+
+      @if (aCertificat()) {
+        <section class="detail-card">
+          <h3>Certificat de naissance</h3>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span>Numéro du certificat</span>
+              <strong>{{ d.numeroCertificat || 'Non renseigné' }}</strong>
+            </div>
+            <div class="info-item">
+              <span>Date du certificat</span>
+              <strong>{{ formaterDate(d.dateCertificat) }}</strong>
+            </div>
+            <div class="info-item">
+              <span>Centre d'état civil</span>
+              <strong>{{ d.centreEtatCivil || 'Non renseigné' }}</strong>
+            </div>
+          </div>
+        </section>
+      }
+
+      @if (aPreuve()) {
+        <section class="detail-card">
+          <h3>Preuve de naissance</h3>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span>Preuve fournie</span>
+              <strong>{{ d.preuveNaissance ? libellePreuve(d.preuveNaissance) : 'Non renseignée' }}</strong>
+            </div>
+            @if (d.temoins.length) {
+              <ul class="temoins">
+                @for (temoin of d.temoins; track $index) {
+                  <li>{{ temoin.nomComplet }} (pièce n° {{ temoin.numeroPiece }})</li>
+                }
+              </ul>
+            }
+          </div>
+        </section>
+      }
+
+      @if (aJugement()) {
+        <section class="detail-card">
+          <h3>Jugement</h3>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span>Numéro du jugement</span>
+              <strong>{{ d.numeroJugement || 'Non renseigné' }}</strong>
+            </div>
+            <div class="info-item">
+              <span>Date du jugement</span>
+              <strong>{{ formaterDate(d.dateJugement) }}</strong>
+            </div>
+            <div class="info-item">
+              <span>Tribunal</span>
+              <strong>{{ d.tribunal || 'Non renseigné' }}</strong>
+            </div>
+            <div class="info-item">
+              <span>Type d'audience</span>
+              <strong>{{ d.typeAudience ? libelleAudience(d.typeAudience) : 'Non renseigné' }}</strong>
+            </div>
+          </div>
+        </section>
+      }
+
+      @if (aTranscription()) {
+        <section class="detail-card">
+          <h3>Transcription de l'acte</h3>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span>Numéro de l'acte</span>
+              <strong>{{ d.numeroActe || 'Non renseigné' }}</strong>
+            </div>
+            <div class="info-item">
+              <span>Année de l'acte</span>
+              <strong>{{ d.anneeActe ?? 'Non renseignée' }}</strong>
+            </div>
+            <div class="info-item">
+              <span>Date de transcription</span>
+              <strong>{{ formaterDate(d.dateTranscription) }}</strong>
+            </div>
+          </div>
+        </section>
+      }
+
+      @if (aRemise()) {
+        <section class="detail-card">
+          <h3>Remise de l'acte</h3>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span>Date de remise</span>
+              <strong>{{ formaterDate(d.dateRemise) }}</strong>
+            </div>
+          </div>
+        </section>
+      }
+
+      <section class="detail-card history-card">
+        <h3>Historique des opérations</h3>
+
+        @if (d.historique.length === 0) {
+          <div class="empty-history">Aucun historique disponible pour ce dossier.</div>
+        } @else {
+          <div class="history-list">
+            @for (ligne of d.historique; track $index) {
+              <article class="history-item">
+                <div class="history-marker"></div>
+
+                <div class="history-content">
+                  <div class="history-top">
+                    <strong>
+                      {{ ligne.etapeDepart ? libelleEtape(ligne.etapeDepart) : 'Création' }}
+                      →
+                      {{ libelleEtape(ligne.etapeArrivee) }}
+                    </strong>
+                    <span class="history-date">{{ formaterDateHeure(ligne.dateHeure) }}</span>
+                  </div>
+
+                  <div class="history-meta">
+                    <span>Auteur : {{ ligne.auteur || '—' }}</span>
+                    <span>Rôle : {{ libelleRole(ligne.role) }}</span>
+                  </div>
+
+                  @if (ligne.commentaire) {
+                    <p class="history-comment">{{ ligne.commentaire }}</p>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+
     </div>
-
-<div *ngIf="messageSucces" class="message-success">
-  {{ messageSucces }}
-</div>
-
-    <!-- Élève -->
-    <section class="detail-card">
-      <h3>Informations de l'élève</h3>
-
-      <div class="info-grid">
-        <div class="info-item">
-          <span>Nom</span>
-          <strong>{{ d.eleve.nom }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Prénom</span>
-          <strong>{{ d.eleve.prenom }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Sexe</span>
-          <strong>{{ d.eleve.sexe }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Date de naissance</span>
-          <strong>{{ d.eleve.dateNaissance }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Classe</span>
-          <strong>{{ d.eleve.classe }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>École</span>
-          <strong>{{ d.eleve.ecole?.nom || 'Non renseignée' }}</strong>
-        </div>
-      </div>
-    </section>
-
-    <!-- Détection et certificat -->
-    <section class="detail-card">
-      <h3>Détection et certificat</h3>
-
-      <div class="info-grid">
-        <div class="info-item">
-          <span>Date de détection</span>
-          <strong>{{ d.dateDetection || 'Non renseignée' }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Numéro du certificat</span>
-          <strong>{{ d.numeroCertificat || 'Non renseigné' }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Date du certificat</span>
-          <strong>{{ d.dateCertificat || 'Non renseignée' }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Centre d'état civil</span>
-          <strong>
-            {{ d.centreEtatCivil?.nom || 'Non renseigné' }}
-          </strong>
-        </div>
-      </div>
-    </section>
-
-    <!-- Jugement -->
-    <section class="detail-card">
-      <h3>Informations du jugement</h3>
-
-      <div class="info-grid">
-        <div class="info-item">
-          <span>Numéro du jugement</span>
-          <strong>{{ d.numeroJugement || 'Non renseigné' }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Date du jugement</span>
-          <strong>{{ d.dateJugement || 'Non renseignée' }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Type d'audience</span>
-          <strong>{{ d.typeAudience || 'Non renseigné' }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Tribunal</span>
-          <strong>
-            {{ d.tribunalInstance?.nom || 'Non renseigné' }}
-          </strong>
-        </div>
-      </div>
-    </section>
-
-    <!-- Transcription et remise -->
-    <section class="detail-card">
-      <h3>Transcription et remise de l'acte</h3>
-
-      <div class="info-grid">
-        <div class="info-item">
-          <span>Numéro de l'acte</span>
-          <strong>{{ d.numeroActe || 'Non renseigné' }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Date de transcription</span>
-          <strong>{{ d.dateTranscription || 'Non renseignée' }}</strong>
-        </div>
-
-        <div class="info-item">
-          <span>Date de remise</span>
-          <strong>{{ d.dateRemise || 'Non renseignée' }}</strong>
-        </div>
-      </div>
-    </section>
-
-    <!-- Historique du dossier -->
-<section class="detail-card history-card">
-  <h3>Historique des opérations</h3>
-
-  <div *ngIf="chargementHistorique" class="message-info">
-    Chargement de l'historique...
-  </div>
-
-  <div *ngIf="erreurHistorique" class="message-error">
-    {{ erreurHistorique }}
-    <button
-      type="button"
-      (click)="chargerHistorique(dossier!.id)">
-      Réessayer
-    </button>
-  </div>
-
-  <div
-    *ngIf="!chargementHistorique &&
-           !erreurHistorique &&
-           historique.length === 0"
-    class="empty-history">
-    Aucun historique disponible pour ce dossier.
-  </div>
-
-  <div
-    class="history-list"
-    *ngIf="!chargementHistorique && historique.length > 0">
-
-    <article class="history-item" *ngFor="let evenement of historique">
-
-      <div class="history-marker"></div>
-
-      <div class="history-content">
-        <div class="history-top">
-          <strong>
-            {{ evenement.etapeDepart || 'Début' }}
-            →
-            {{ evenement.etapeArrivee }}
-          </strong>
-
-          <span class="history-date">
-            {{ evenement.dateHeure | date:'dd/MM/yyyy à HH:mm' }}
-          </span>
-        </div>
-
-        <div class="history-meta">
-          <span>Rôle : {{ evenement.roleAuteur }}</span>
-          <span>Utilisateur ID : {{ evenement.auteurId }}</span>
-        </div>
-
-        <p class="history-comment" *ngIf="evenement.commentaire">
-          {{ evenement.commentaire }}
-        </p>
-      </div>
-
-    </article>
-  </div>
-</section>
-
-  </div>
+  }
 </div>

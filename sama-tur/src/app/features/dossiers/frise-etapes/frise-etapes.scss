@@ -1,0 +1,63 @@
+.frise {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etape {
+  display: flex;
+  flex: 1 1 120px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.pastille {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.faite {
+  color: #166534;
+
+  .pastille {
+    border-color: #166534;
+    background: #dcfce7;
+  }
+}
+
+.courante {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+
+  .pastille {
+    border-color: #1d4ed8;
+    background: #1d4ed8;
+    color: #fff;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}

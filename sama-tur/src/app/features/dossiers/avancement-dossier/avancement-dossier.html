@@ -1,0 +1,204 @@
+<section class="avancement" aria-labelledby="titre-avancement">
+  <h3 id="titre-avancement">Faire avancer le dossier</h3>
+
+  @if (confirmation()) {
+    <p class="confirmation" role="status">{{ confirmation() }}</p>
+  }
+
+  @if (bandeau()) {
+    <div class="bandeau-erreur" role="alert">
+      <p>{{ bandeau() }}</p>
+      @if (horsChamps().length) {
+        <ul>
+          @for (ligne of horsChamps(); track ligne) {
+            <li>{{ ligne }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  <ng-template #message let-nom="nom">
+    @if (erreur(nom); as texte) {
+      <small class="erreur" [id]="'err-' + nom">{{ texte }}</small>
+    }
+  </ng-template>
+
+  @if (formulaire(); as form) {
+    <form [formGroup]="form" (ngSubmit)="valider()" novalidate>
+      <p class="intro">Passage à l'étape « {{ libelleCible() }} ».</p>
+
+      @switch (etapeCible()) {
+        @case ('CERTIFICAT_OBTENU') {
+          <div class="champ">
+            <label for="av-numeroCertificat">Numéro du certificat</label>
+            <input id="av-numeroCertificat" type="text" formControlName="numeroCertificat"
+                   [attr.aria-invalid]="erreur('numeroCertificat') ? 'true' : null"
+                   [attr.aria-describedby]="erreur('numeroCertificat') ? 'err-numeroCertificat' : null" />
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'numeroCertificat' }" />
+          </div>
+
+          <div class="champ">
+            <label for="av-dateCertificat">Date du certificat</label>
+            <input id="av-dateCertificat" type="date" formControlName="dateCertificat"
+                   [attr.min]="dateMin()" [attr.max]="dateMax"
+                   [attr.aria-invalid]="erreur('dateCertificat') ? 'true' : null"
+                   [attr.aria-describedby]="erreur('dateCertificat') ? 'err-dateCertificat' : null" />
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'dateCertificat' }" />
+          </div>
+
+          <div class="champ">
+            <label for="av-centreEtatCivilId">Centre d'état civil</label>
+            <select id="av-centreEtatCivilId" formControlName="centreEtatCivilId"
+                    [attr.aria-invalid]="erreur('centreEtatCivilId') ? 'true' : null"
+                    [attr.aria-describedby]="erreur('centreEtatCivilId') ? 'err-centreEtatCivilId' : null">
+              <option value="">Choisir un centre</option>
+              @for (c of centres(); track c.id) {
+                <option [value]="c.id">{{ c.nom }}</option>
+              }
+            </select>
+            @if (listeIndisponible()) {
+              <small class="erreur">La liste des centres est indisponible. Rechargez la page.</small>
+            }
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'centreEtatCivilId' }" />
+          </div>
+        }
+
+        @case ('DOSSIER_COMPLET') {
+          <fieldset class="groupe">
+            <legend>Preuve de naissance</legend>
+            @for (p of preuves; track p) {
+              <label class="radio">
+                <input type="radio" formControlName="preuveNaissance" [value]="p" />
+                {{ libellePreuve(p) }}
+              </label>
+            }
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'preuveNaissance' }" />
+          </fieldset>
+
+          <div formArrayName="temoins">
+            @for (temoin of temoins(); track $index; let i = $index) {
+              <fieldset class="groupe" [formGroupName]="i">
+                <legend>Témoin {{ i + 1 }}</legend>
+
+                <div class="champ">
+                  <label [for]="'av-temoin-' + i + '-nom'">Nom complet</label>
+                  <input [id]="'av-temoin-' + i + '-nom'" type="text" formControlName="nomComplet"
+                         [attr.aria-invalid]="erreur('temoins.' + i + '.nomComplet') ? 'true' : null" />
+                  <ng-container
+                    *ngTemplateOutlet="message; context: { nom: 'temoins.' + i + '.nomComplet' }" />
+                </div>
+
+                <div class="champ">
+                  <label [for]="'av-temoin-' + i + '-piece'">Numéro de pièce d'identité</label>
+                  <input [id]="'av-temoin-' + i + '-piece'" type="text" formControlName="numeroPiece"
+                         [attr.aria-invalid]="erreur('temoins.' + i + '.numeroPiece') ? 'true' : null" />
+                  <ng-container
+                    *ngTemplateOutlet="message; context: { nom: 'temoins.' + i + '.numeroPiece' }" />
+                </div>
+              </fieldset>
+            }
+          </div>
+          <ng-container *ngTemplateOutlet="message; context: { nom: 'temoins' }" />
+        }
+
+        @case ('JUGEMENT_RENDU') {
+          <div class="champ">
+            <label for="av-numeroJugement">Numéro du jugement</label>
+            <input id="av-numeroJugement" type="text" formControlName="numeroJugement"
+                   [attr.aria-invalid]="erreur('numeroJugement') ? 'true' : null"
+                   [attr.aria-describedby]="erreur('numeroJugement') ? 'err-numeroJugement' : null" />
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'numeroJugement' }" />
+          </div>
+
+          <div class="champ">
+            <label for="av-dateJugement">Date du jugement</label>
+            <input id="av-dateJugement" type="date" formControlName="dateJugement"
+                   [attr.min]="dateMin()" [attr.max]="dateMax"
+                   [attr.aria-invalid]="erreur('dateJugement') ? 'true' : null"
+                   [attr.aria-describedby]="erreur('dateJugement') ? 'err-dateJugement' : null" />
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'dateJugement' }" />
+          </div>
+
+          <div class="champ">
+            <label for="av-tribunalId">Tribunal</label>
+            <select id="av-tribunalId" formControlName="tribunalId"
+                    [attr.aria-invalid]="erreur('tribunalId') ? 'true' : null"
+                    [attr.aria-describedby]="erreur('tribunalId') ? 'err-tribunalId' : null">
+              <option value="">Choisir un tribunal</option>
+              @for (t of tribunaux(); track t.id) {
+                <option [value]="t.id">{{ t.nom }}</option>
+              }
+            </select>
+            @if (listeIndisponible()) {
+              <small class="erreur">La liste des tribunaux est indisponible. Rechargez la page.</small>
+            }
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'tribunalId' }" />
+          </div>
+
+          <fieldset class="groupe">
+            <legend>Type d'audience</legend>
+            @for (a of audiences; track a) {
+              <label class="radio">
+                <input type="radio" formControlName="typeAudience" [value]="a" />
+                {{ libelleAudience(a) }}
+              </label>
+            }
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'typeAudience' }" />
+          </fieldset>
+        }
+
+        @case ('TRANSCRIT') {
+          <div class="champ">
+            <label for="av-numeroActe">Numéro de l'acte</label>
+            <input id="av-numeroActe" type="text" formControlName="numeroActe"
+                   [attr.aria-invalid]="erreur('numeroActe') ? 'true' : null"
+                   [attr.aria-describedby]="erreur('numeroActe') ? 'err-numeroActe' : null" />
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'numeroActe' }" />
+          </div>
+
+          <div class="champ">
+            <label for="av-anneeActe">Année de l'acte</label>
+            <input id="av-anneeActe" type="number" inputmode="numeric" step="1"
+                   formControlName="anneeActe"
+                   [attr.aria-invalid]="erreur('anneeActe') ? 'true' : null"
+                   [attr.aria-describedby]="erreur('anneeActe') ? 'err-anneeActe' : null" />
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'anneeActe' }" />
+          </div>
+
+          <div class="champ">
+            <label for="av-dateTranscription">Date de transcription</label>
+            <input id="av-dateTranscription" type="date" formControlName="dateTranscription"
+                   [attr.min]="dateMin()" [attr.max]="dateMax"
+                   [attr.aria-invalid]="erreur('dateTranscription') ? 'true' : null"
+                   [attr.aria-describedby]="erreur('dateTranscription') ? 'err-dateTranscription' : null" />
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'dateTranscription' }" />
+          </div>
+        }
+
+        @case ('ACTE_REMIS') {
+          <div class="champ">
+            <label for="av-dateRemise">Date de remise de l'acte</label>
+            <input id="av-dateRemise" type="date" formControlName="dateRemise"
+                   [attr.min]="dateMin()" [attr.max]="dateMax"
+                   [attr.aria-invalid]="erreur('dateRemise') ? 'true' : null"
+                   [attr.aria-describedby]="erreur('dateRemise') ? 'err-dateRemise' : null" />
+            <ng-container *ngTemplateOutlet="message; context: { nom: 'dateRemise' }" />
+          </div>
+        }
+      }
+
+      <div class="champ">
+        <label for="av-commentaire">Commentaire (facultatif)</label>
+        <textarea id="av-commentaire" rows="2" formControlName="commentaire"></textarea>
+        <ng-container *ngTemplateOutlet="message; context: { nom: 'commentaire' }" />
+      </div>
+
+      <button type="submit" class="btn-avancer" [disabled]="envoi()">
+        {{ envoi() ? 'Enregistrement...' : 'Passer à l’étape suivante' }}
+      </button>
+    </form>
+  } @else {
+    <p class="lecture">{{ messageLecture() }}</p>
+  }
+</section>

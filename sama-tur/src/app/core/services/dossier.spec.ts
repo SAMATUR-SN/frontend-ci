@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { Page } from '../models/page.model';
-import { DossierResume } from '../models/dossier.model';
+import { AvancerDossierRequest, DossierResume } from '../models/dossier.model';
 import { DossierService } from './dossier';
 
 describe('DossierService', () => {
@@ -22,6 +22,63 @@ describe('DossierService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  describe('trouver', () => {
+    it('lit GET /api/dossiers/{id} en une seule requête et rend le détail', () => {
+      let recu: unknown;
+
+      service.trouver(12).subscribe((d) => (recu = d));
+      const requete = http.expectOne('/api/dossiers/12');
+      expect(requete.request.method).toBe('GET');
+      requete.flush({ id: 12, reference: 'ST-2026-000012', historique: [] });
+
+      expect(recu).toEqual({ id: 12, reference: 'ST-2026-000012', historique: [] });
+    });
+
+    it('ne demande jamais de route /historique : il est dans le détail', () => {
+      service.trouver(3).subscribe();
+
+      http.expectNone('/api/dossiers/3/historique');
+      http.expectOne('/api/dossiers/3').flush({});
+    });
+  });
+
+  describe('avancer', () => {
+    it('envoie la requête telle quelle en POST /api/dossiers/{id}/avancer', () => {
+      const corps: AvancerDossierRequest = {
+        etapeCible: 'JUGEMENT_RENDU',
+        numeroJugement: 'JUG-1',
+        dateJugement: '2026-11-05',
+        tribunalId: 2,
+        typeAudience: 'ORDINAIRE',
+      };
+      let recu: unknown;
+
+      service.avancer(7, corps).subscribe((d) => (recu = d));
+      const requete = http.expectOne('/api/dossiers/7/avancer');
+      expect(requete.request.method).toBe('POST');
+      expect(requete.request.body).toEqual(corps);
+      requete.flush({ id: 7, etape: 'JUGEMENT_RENDU' });
+
+      expect(recu).toEqual({ id: 7, etape: 'JUGEMENT_RENDU' });
+    });
+
+    it('relance l’erreur du backend à l’appelant (422)', () => {
+      let statut = 0;
+
+      service
+        .avancer(7, { etapeCible: 'TRANSCRIT' })
+        .subscribe({ error: (e) => (statut = e.status) });
+      http
+        .expectOne('/api/dossiers/7/avancer')
+        .flush(
+          { title: 'Champ obligatoire manquant' },
+          { status: 422, statusText: 'Unprocessable' },
+        );
+
+      expect(statut).toBe(422);
+    });
   });
 
   describe('lister', () => {

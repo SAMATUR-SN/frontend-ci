@@ -17,7 +17,7 @@ import { DossierService } from '../../../core/services/dossier';
 import { AlerteService } from '../../../core/services/alerte';
 
 import { Eleve } from '../../../core/models/eleve.model';
-import { Dossier, StatutDossier } from '../../../core/models/dossier.model';
+import { Dossier, StatutDossierAncien } from '../../../core/models/dossier.model';
 import { Alerte } from '../../../core/models/alerte.model';
 import { Role } from '../../../core/models/utilisateur.model';
 
@@ -233,9 +233,9 @@ export class Dashboard {
   // TRADUCTION DES STATUTS DES DOSSIERS
   
 
-  protected getStatutLabel(statut: StatutDossier): string {
+  protected getStatutLabel(statut: StatutDossierAncien): string {
 
-    const labels: Record<StatutDossier, string> = {
+    const labels: Record<StatutDossierAncien, string> = {
       DETECTE: 'Détecté',
       CERTIFICAT_OBTENU: 'Certificat obtenu',
       CERTIFICAT_ETABLI: 'Certificat établi',

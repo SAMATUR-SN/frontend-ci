@@ -6,7 +6,7 @@ export interface Commune {
   region: string | null;
 }
 
-// École renvoyée par le backend
+/** @deprecated Ancienne forme imbriquée ; le référentiel renvoie l'Ecole de referentiel.model (bloc 5). */
 export interface Ecole {
   id: number;
   nom: string;

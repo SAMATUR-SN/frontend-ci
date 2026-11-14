@@ -4,7 +4,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import {
+  AvancerDossierRequest,
   Dossier,
+  DossierDetail,
   DossierResume,
   FiltreDossiers,
   HistoriqueDossier,
@@ -62,8 +64,18 @@ export class DossierService {
     return this.http.get<Dossier>(`${this.apiUrl}/${id}`);
   }
 
-  /** @deprecated Envoie un corps vide ; le backend exige etapeCible et les champs de l'étape (bloc 2b). */
-  avancer(id: number): Observable<Dossier> {
+  /** GET /api/dossiers/{id} : le détail, historique compris (une seule requête). */
+  trouver(id: number): Observable<DossierDetail> {
+    return this.http.get<DossierDetail>(`${this.apiUrl}/${id}`);
+  }
+
+  /** POST /api/dossiers/{id}/avancer : la réponse est le dossier complet, à l'étape suivante. */
+  avancer(id: number, requete: AvancerDossierRequest): Observable<DossierDetail> {
+    return this.http.post<DossierDetail>(`${this.apiUrl}/${id}/avancer`, requete);
+  }
+
+  /** @deprecated Envoie un corps vide, que le backend refuse. Retirée avec l'ancienne fiche. */
+  avancerAncien(id: number): Observable<Dossier> {
     return this.http.post<Dossier>(
       `${this.apiUrl}/${id}/avancer`,
       {}

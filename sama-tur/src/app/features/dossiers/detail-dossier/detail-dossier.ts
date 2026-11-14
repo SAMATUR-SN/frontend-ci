@@ -53,7 +53,7 @@ export class DetailDossier implements OnInit {
     this.messageErreur = '';
     this.messageSucces = '';
 
-    this.dossierService.avancer(this.dossier.id).subscribe({
+    this.dossierService.avancerAncien(this.dossier.id).subscribe({
       next: (dossierActualise) => {
         this.dossier = dossierActualise;
         this.chargerHistorique(dossierActualise.id);

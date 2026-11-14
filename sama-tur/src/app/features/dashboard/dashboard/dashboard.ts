@@ -69,6 +69,11 @@ export class Dashboard {
     return this.tokenStorage.getUtilisateur()?.nomAffiche ?? 'Utilisateur';
   }
 
+  // Absente (null) pour le superviseur.
+  protected get structureUtilisateur(): string | null {
+    return this.tokenStorage.getUtilisateur()?.structure ?? null;
+  }
+
   protected getRoleLabel(): string {
 
     const labels: Record<Role, string> = {

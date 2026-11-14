@@ -26,6 +26,9 @@
           <div class="user-details">
             <strong>{{ nomUtilisateur }}</strong>
             <small>{{ getRoleLabel() }}</small>
+            @if (structureUtilisateur) {
+              <small>{{ structureUtilisateur }}</small>
+            }
           </div>
         </div>
 

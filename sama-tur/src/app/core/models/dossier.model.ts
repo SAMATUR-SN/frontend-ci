@@ -164,14 +164,3 @@ export interface Dossier {
 
   version: number | null;
 }
-
-export interface HistoriqueDossier {
-  id: number;
-  dossier: Record<string, unknown>;
-  etapeDepart: string;
-  etapeArrivee: string;
-  dateHeure: string;
-  auteurId: number;
-  roleAuteur: string;
-  commentaire: string;
-}

@@ -33,19 +33,9 @@ import {
 } from '../../../core/utils/avancement';
 import { formaterDate } from '../../../core/utils/dates';
 import { etapeSuivante, libelleEtape, roleRequis } from '../../../core/utils/etapes';
+import { libelleAudience, libellePreuve } from '../../../core/utils/libelles';
 import { extraireProbleme } from '../../../core/utils/probleme';
 import { libelleRole } from '../../../core/utils/roles';
-
-const LIBELLES_PREUVE: Record<(typeof PREUVES_NAISSANCE)[number], string> = {
-  CERTIFICAT_ACCOUCHEMENT: 'Certificat d’accouchement',
-  TEMOINS: 'Deux témoins',
-};
-
-const LIBELLES_AUDIENCE: Record<(typeof TYPES_AUDIENCE)[number], string> = {
-  ORDINAIRE: 'Ordinaire',
-  SPECIALE: 'Spéciale',
-  FORAINE: 'Foraine',
-};
 
 const MESSAGES_SERVEUR: Record<string, string> = {
   obligatoire: 'Ce champ est obligatoire.',
@@ -79,8 +69,8 @@ export class AvancementDossier {
 
   protected readonly preuves = PREUVES_NAISSANCE;
   protected readonly audiences = TYPES_AUDIENCE;
-  protected readonly libellePreuve = (p: (typeof PREUVES_NAISSANCE)[number]) => LIBELLES_PREUVE[p];
-  protected readonly libelleAudience = (a: (typeof TYPES_AUDIENCE)[number]) => LIBELLES_AUDIENCE[a];
+  protected readonly libellePreuve = libellePreuve;
+  protected readonly libelleAudience = libelleAudience;
   protected readonly dateMax = aujourdhui();
 
   protected readonly centres = signal<Option[]>([]);

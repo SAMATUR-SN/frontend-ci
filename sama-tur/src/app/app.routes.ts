@@ -6,6 +6,7 @@ import { Dashboard } from './features/dashboard/dashboard/dashboard';
 
 import { authGuard } from './core/guards/auth-guard';
 import { roleGuard } from './core/guards/role-guard';
+import { ROLES_ALERTES, ROLES_IMPORT } from './core/utils/acces';
 
 import { TestApi } from './features/eleves/test-api/test-api';
 
@@ -63,7 +64,7 @@ export const routes: Routes = [
     component: ImportEleves,
     canActivate: [authGuard, roleGuard],
     data: {
-      roles: ['ECOLE']
+      roles: ROLES_IMPORT
     }
   },
 
@@ -94,11 +95,7 @@ export const routes: Routes = [
     component: ListeAlertes,
     canActivate: [authGuard, roleGuard],
     data: {
-      roles: [
-        'ETAT_CIVIL',
-        'TRIBUNAL',
-        'SUPERVISEUR'
-      ]
+      roles: ROLES_ALERTES
     }
   },
 

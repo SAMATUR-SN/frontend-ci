@@ -1,0 +1,306 @@
+
+<main class="detail-container">
+
+  <!-- EN-TÊTE -->
+  <header class="detail-header">
+    <div>
+      <button class="btn-retour" type="button" (click)="retournerListe()">
+        ← Retour à la liste
+      </button>
+
+      <h1>Dossier de l'élève</h1>
+      <p>Consultez les informations détaillées de l'élève.</p>
+    </div>
+  </header>
+
+  <!-- CHARGEMENT -->
+  <div *ngIf="loading" class="loading">
+    Chargement du dossier...
+  </div>
+
+  <!-- ERREUR -->
+  <div *ngIf="!loading && errorMessage" class="error-message">
+    {{ errorMessage }}
+    <button type="button" (click)="retournerListe()">
+      Retour à la liste
+    </button>
+  </div>
+
+  <!-- CONTENU DU DOSSIER -->
+  <div *ngIf="!loading && eleve" class="dossier-content">
+
+    <!-- IDENTITÉ -->
+    <section class="carte-identite">
+      <div class="avatar-eleve">
+        {{ eleve.prenom.charAt(0) }}{{ eleve.nom.charAt(0) }}
+      </div>
+
+      <div class="identite-infos">
+        <h2>{{ eleve.prenom }} {{ eleve.nom }}</h2>
+        <p>Élève n° {{ eleve.id }}</p>
+      </div>
+
+      <div class="actions-dossier">
+        <button
+            *ngIf="!modeModification"
+            type="button"
+            class="btn-modifier"
+            (click)="activerModification()">
+            Modifier le dossier
+        </button>
+
+            <button
+                *ngIf="modeModification"
+                type="button"
+                class="btn-annuler"
+                (click)="annulerModification()">
+                Annuler
+            </button>
+            <button
+              *ngIf="!modeModification"
+              type="button"
+              class="btn-supprimer"
+              (click)="supprimerEleve()"
+              [disabled]="suppressionEnCours">
+
+              {{ suppressionEnCours
+                ? 'Suppression en cours...'
+                : 'Supprimer le dossier' }}
+
+            </button>
+        </div>
+
+      <span class="badge-sexe">
+        {{ eleve.sexe === 'M' ? 'Masculin' : 'Féminin' }}
+      </span>
+    </section>
+    <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+    </div>
+
+
+<form
+  *ngIf="modeModification"
+  [formGroup]="formulaire"
+  (ngSubmit)="enregistrerModification()"
+  class="carte-detail formulaire-modification">
+
+  <h3>Modifier les informations de l'élève</h3>
+
+  <h4>Informations personnelles</h4>
+
+  <div class="informations-grid">
+    <div class="information">
+      <label>Nom *</label>
+      <input type="text" formControlName="nom">
+
+      <small *ngIf="formulaire.get('nom')?.touched && formulaire.get('nom')?.hasError('required')">
+        Le nom est obligatoire.
+      </small>
+
+      <small *ngIf="formulaire.get('nom')?.touched && formulaire.get('nom')?.hasError('texteVide')">
+        Le nom ne peut pas contenir uniquement des espaces.
+      </small>
+    </div>
+    <div class="information">
+      <label>Prénom *</label>
+      <input type="text" formControlName="prenom">
+
+      <small *ngIf="formulaire.get('prenom')?.touched && formulaire.get('prenom')?.hasError('required')">
+        Le prénom est obligatoire.
+      </small>
+
+      <small *ngIf="formulaire.get('prenom')?.touched && formulaire.get('prenom')?.hasError('texteVide')">
+        Le prénom ne peut pas contenir uniquement des espaces.
+      </small>
+    </div>
+
+    <div class="information">
+      <label>Sexe *</label>
+      <select formControlName="sexe">
+        <option value="M">Masculin</option>
+        <option value="F">Féminin</option>
+      </select>
+      <small *ngIf="formulaire.get('sexe')?.touched && formulaire.get('sexe')?.invalid">
+        Veuillez sélectionner un sexe valide.
+      </small>
+    </div>
+
+    <div class="information">
+      <label>Date de naissance *</label>
+      <input type="date" formControlName="dateNaissance">
+
+      <small *ngIf="formulaire.get('dateNaissance')?.touched && formulaire.get('dateNaissance')?.hasError('required')">
+        La date de naissance est obligatoire.
+      </small>
+
+      <small *ngIf="formulaire.get('dateNaissance')?.touched && formulaire.get('dateNaissance')?.hasError('dateFuture')">
+        La date de naissance ne peut pas être dans le futur.
+      </small>
+
+      <small *ngIf="formulaire.get('dateNaissance')?.touched && formulaire.get('dateNaissance')?.hasError('dateInvalide')">
+        Veuillez saisir une date valide.
+      </small>
+    </div>
+
+    <div class="information">
+      <label>Numéro INE</label>
+      <input type="text" formControlName="numeroIne">
+    </div>
+
+    <div class="information">
+      <label>
+        <input type="checkbox" formControlName="dateNaissancePresumee">
+        Date de naissance présumée
+      </label>
+    </div>
+  </div>
+
+  <h4>Informations scolaires</h4>
+
+  <div class="informations-grid">
+    <div class="information">
+      <label>Classe *</label>
+      <input type="text" formControlName="classe">
+    </div>
+  </div>
+
+  <h4>Informations familiales</h4>
+
+  <div class="informations-grid">
+    <div class="information">
+      <label>Nom du père</label>
+      <input type="text" formControlName="nomPere">
+    </div>
+
+    <div class="information">
+      <label>Profession du père</label>
+      <input type="text" formControlName="professionPere">
+    </div>
+
+    <div class="information">
+      <label>Nom de la mère</label>
+      <input type="text" formControlName="nomMere">
+    </div>
+
+    <div class="information">
+      <label>Profession de la mère</label>
+      <input type="text" formControlName="professionMere">
+    </div>
+  </div>
+
+  <div class="actions-formulaire">
+    <button
+      type="submit"
+      class="btn-enregistrer"
+      [disabled]="enregistrementEnCours">
+
+      {{ enregistrementEnCours ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+    </button>
+
+    <button
+      type="button"
+      class="btn-annuler"
+      (click)="annulerModification()">
+      Annuler
+    </button>
+  </div>
+
+</form>
+
+
+    <!-- INFORMATIONS PERSONNELLES -->
+    <section class="carte-detail" *ngIf="!modeModification">
+      <h3>Informations personnelles</h3>
+
+      <div class="informations-grid">
+        <div class="information">
+          <label>Nom</label>
+          <p>{{ eleve.nom }}</p>
+        </div>
+
+        <div class="information">
+          <label>Prénom</label>
+          <p>{{ eleve.prenom }}</p>
+        </div>
+
+        <div class="information">
+          <label>Sexe</label>
+          <p>{{ eleve.sexe === 'M' ? 'Masculin' : 'Féminin' }}</p>
+        </div>
+
+        <div class="information">
+          <label>Date de naissance</label>
+          <p>{{ eleve.dateNaissance | date:'dd/MM/yyyy' }}</p>
+          <small *ngIf="eleve.dateNaissancePresumee">
+            Date présumée
+          </small>
+        </div>
+
+        <div class="information">
+          <label>Numéro INE</label>
+          <p>{{ eleve.numeroIne || 'Non renseigné' }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- INFORMATIONS SCOLAIRES -->
+    <section class="carte-detail" *ngIf="!modeModification">
+      <h3>Informations scolaires</h3>
+
+      <div class="informations-grid">
+        <div class="information">
+          <label>Établissement</label>
+          <p>{{ eleve.ecole?.nom || 'Non renseigné' }}</p>
+        </div>
+
+        <div class="information">
+          <label>Classe *</label>
+          <input type="text" formControlName="classe">
+
+          <small *ngIf="formulaire.get('classe')?.touched && formulaire.get('classe')?.hasError('required')">
+            La classe est obligatoire.
+          </small>
+
+          <small *ngIf="formulaire.get('classe')?.touched && formulaire.get('classe')?.hasError('texteVide')">
+            La classe ne peut pas contenir uniquement des espaces.
+          </small>
+        </div>
+
+        <div class="information">
+          <label>Commune de naissance</label>
+          <p>{{ eleve.communeNaissance?.nom || 'Non renseignée' }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- INFORMATIONS FAMILIALES -->
+    <section class="carte-detail" *ngIf="!modeModification">
+      <h3>Informations familiales</h3>
+
+      <div class="informations-grid">
+        <div class="information">
+          <label>Nom du père</label>
+          <p>{{ eleve.nomPere || 'Non renseigné' }}</p>
+        </div>
+
+        <div class="information">
+          <label>Profession du père</label>
+          <p>{{ eleve.professionPere || 'Non renseignée' }}</p>
+        </div>
+
+        <div class="information">
+          <label>Nom de la mère</label>
+          <p>{{ eleve.nomMere || 'Non renseigné' }}</p>
+        </div>
+
+        <div class="information">
+          <label>Profession de la mère</label>
+          <p>{{ eleve.professionMere || 'Non renseignée' }}</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</main>

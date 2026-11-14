@@ -1,0 +1,130 @@
+
+<main class="import-container">
+
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">GESTION DES ÉLÈVES</span>
+      <h1>Importation des élèves</h1>
+      <p>Enregistrez plusieurs élèves simultanément à partir d'un fichier CSV.</p>
+    </div>
+
+    <a routerLink="/eleves" class="back-link">← Retour aux élèves</a>
+  </header>
+
+  <section class="instructions-card">
+    <div class="instructions-icon">ⓘ</div>
+    <div>
+      <h2>Format attendu</h2>
+      <p>Le fichier doit être au format CSV avec un séparateur point-virgule (;).</p>
+      <p>Les colonnes doivent respecter exactement le format attendu par le serveur.</p>
+    </div>
+  </section>
+
+  <section class="upload-card">
+    <div class="section-title">
+      <h2>1. Sélectionner un fichier</h2>
+      <p>Choisissez le fichier CSV à importer.</p>
+    </div>
+
+    <label class="upload-zone" for="csvFile">
+      <span class="upload-icon">↑</span>
+      <strong>Choisir un fichier CSV</strong>
+      <span>Format accepté : .csv</span>
+      <span class="choose-button">Parcourir les fichiers</span>
+    </label>
+
+    <input
+      id="csvFile"
+      type="file"
+      accept=".csv,text/csv"
+      (change)="onFileSelected($event)"
+    />
+
+    @if (nomFichier) {
+      <div class="file-selected">
+        <span class="file-icon">CSV</span>
+        <div class="file-info">
+          <strong>{{ nomFichier }}</strong>
+          <small>{{ nombreLignes }} ligne(s) de données détectée(s)</small>
+        </div>
+        <button type="button" class="remove-button" (click)="reinitialiser()">
+          Retirer
+        </button>
+      </div>
+    }
+
+    @if (erreurFichier) {
+      <div class="message error">{{ erreurFichier }}</div>
+    }
+  </section>
+
+  @if (apercu.length > 0) {
+    <section class="preview-card">
+      <div class="section-title">
+        <h2>2. Prévisualisation</h2>
+        <p>Affichage de l'en-tête et des cinq premières lignes.</p>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              @for (colonne of apercu[0]; track $index) {
+                <th>{{ colonne || 'Colonne ' + ($index + 1) }}</th>
+              }
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (ligne of apercu.slice(1); track $index) {
+              <tr>
+                @for (cellule of ligne; track $index) {
+                  <td>{{ cellule }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <p class="preview-note">
+        Cette prévisualisation est indicative. La validation définitive est effectuée par le serveur.
+      </p>
+    </section>
+  }
+
+  @if (messageSucces) {
+    <div class="message success">
+      <strong>Importation réussie</strong>
+      <p>{{ messageSucces }}</p>
+    </div>
+  }
+
+  @if (erreurs.length > 0) {
+    <section class="message error">
+      <strong>Importation refusée ou incomplète</strong>
+      <ul>
+        @for (erreur of erreurs; track $index) {
+          <li>{{ erreur }}</li>
+        }
+      </ul>
+    </section>
+  }
+
+  <section class="action-card">
+    <div>
+      <h2>3. Lancer l'importation</h2>
+      <p>Le serveur vérifiera les données avant de confirmer l'opération.</p>
+    </div>
+
+    <button
+      type="button"
+      class="import-button"
+      [disabled]="!fichier || chargement"
+      (click)="importer()"
+    >
+      {{ chargement ? 'Importation en cours...' : 'Importer les élèves' }}
+    </button>
+  </section>
+
+</main>

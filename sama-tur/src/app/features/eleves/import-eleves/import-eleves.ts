@@ -1,169 +1,183 @@
-
-import { Component, inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
-import { finalize } from 'rxjs/operators';
 
+import { RapportImport } from '../../../core/models/rapport-import.model';
 import { EleveService } from '../../../core/services/eleve.service';
+import {
+  COLONNES_OBLIGATOIRES,
+  analyserCsv,
+  modeleCsv,
+  verifierContenu,
+  verifierFichier,
+} from '../../../core/utils/csv-import';
+import { extraireProbleme, ProblemeExtrait } from '../../../core/utils/probleme';
+import { ResultatImport } from '../resultat-import/resultat-import';
+
+const NOM_MODELE = 'modele-import-eleves.csv';
+
+/** Le message affiché pour un import refusé : le détail du serveur pour 400 et 422, sinon le nôtre. */
+function messageRefus(probleme: ProblemeExtrait): string {
+  switch (probleme.status) {
+    case 400:
+    case 422:
+      return probleme.detail || 'Le fichier a été refusé par le serveur.';
+    case 403:
+      return 'Réservé aux directeurs d’école.';
+    case 413:
+      return 'Le fichier est trop volumineux : 2 Mo au maximum.';
+    case 0:
+      return 'Serveur injoignable. Vérifiez la connexion, puis réessayez.';
+    default:
+      return 'L’importation a échoué. Réessayez dans un instant.';
+  }
+}
+
+function lireTexte(fichier: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const lecteur = new FileReader();
+    lecteur.onload = () => resolve(String(lecteur.result ?? ''));
+    lecteur.onerror = () => reject(lecteur.error);
+    lecteur.readAsText(fichier, 'UTF-8');
+  });
+}
 
 @Component({
   selector: 'app-import-eleves',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, ResultatImport],
   templateUrl: './import-eleves.html',
-  styleUrl: './import-eleves.scss'
+  styleUrl: './import-eleves.scss',
 })
 export class ImportEleves {
   private readonly eleveService = inject(EleveService);
+  private readonly document = inject(DOCUMENT);
+  private readonly champ = viewChild<ElementRef<HTMLInputElement>>('champFichier');
 
-  protected fichier: File | null = null;
-  protected nomFichier = '';
-  protected apercu: string[][] = [];
-  protected nombreLignes = 0;
+  protected readonly colonnesObligatoires = COLONNES_OBLIGATOIRES.join(', ');
 
-  protected chargement = false;
-  protected messageSucces = '';
-  protected erreurs: string[] = [];
-  protected erreurFichier = '';
+  protected readonly fichier = signal<File | null>(null);
+  protected readonly apercu = signal<string[][]>([]);
+  protected readonly nombreLignes = signal(0);
+  /** Refus décidé ici, avant tout envoi. */
+  protected readonly erreurFichier = signal('');
+  /** Refus décidé par le serveur. */
+  protected readonly erreurServeur = signal('');
+  protected readonly rapport = signal<RapportImport | null>(null);
+  protected readonly chargement = signal(false);
 
-  protected onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+  /** Ignore la lecture d'un fichier choisi avant celui qui vient d'être sélectionné. */
+  private lecture = 0;
 
-    this.reinitialiserMessages();
+  protected async choisirFichier(event: Event): Promise<void> {
+    const champ = event.target as HTMLInputElement;
+    const choisi = champ.files?.[0];
+    const numero = ++this.lecture;
 
-    if (!file) {
+    this.viderMessages();
+    this.retirerFichier();
+
+    if (!choisi) {
       return;
     }
 
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      this.erreurFichier = 'Veuillez sélectionner un fichier CSV.';
-      input.value = '';
+    const refus = verifierFichier(choisi.name, choisi.size);
+    if (refus) {
+      this.refuser(refus);
       return;
     }
 
-    if (file.size === 0) {
-      this.erreurFichier = 'Le fichier sélectionné est vide.';
-      input.value = '';
+    let contenu: string;
+    try {
+      contenu = await lireTexte(choisi);
+    } catch {
+      this.refuser('Impossible de lire le fichier sélectionné.');
       return;
     }
 
-    this.fichier = file;
-    this.nomFichier = file.name;
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      const contenu = String(reader.result ?? '');
-      const lignes = contenu
-        .replace(/^\uFEFF/, '')
-        .split(/\r?\n/)
-        .filter(ligne => ligne.trim() !== '');
-
-      this.nombreLignes = Math.max(lignes.length - 1, 0);
-      this.apercu = lignes.slice(0, 6).map(ligne =>
-        this.parserLigneCsv(ligne)
-      );
-    };
-
-    reader.onerror = () => {
-      this.erreurFichier = 'Impossible de lire le fichier sélectionné.';
-      this.fichier = null;
-      this.apercu = [];
-    };
-
-    reader.readAsText(file, 'UTF-8');
-  }
-
-  private parserLigneCsv(ligne: string): string[] {
-    const cellules: string[] = [];
-    let valeur = '';
-    let entreGuillemets = false;
-
-    for (let i = 0; i < ligne.length; i++) {
-      const caractere = ligne[i];
-
-      if (caractere === '"') {
-        if (entreGuillemets && ligne[i + 1] === '"') {
-          valeur += '"';
-          i++;
-        } else {
-          entreGuillemets = !entreGuillemets;
-        }
-      } else if (caractere === ';' && !entreGuillemets) {
-        cellules.push(valeur.trim());
-        valeur = '';
-      } else {
-        valeur += caractere;
-      }
+    if (numero !== this.lecture) {
+      return;
     }
 
-    cellules.push(valeur.trim());
-    return cellules;
+    const refusContenu = verifierContenu(contenu);
+    if (refusContenu) {
+      this.refuser(refusContenu);
+      return;
+    }
+
+    const analyse = analyserCsv(contenu);
+    this.apercu.set(analyse.lignes);
+    this.nombreLignes.set(analyse.nombreLignes);
+    this.fichier.set(choisi);
   }
 
-  
-protected importer(): void {
-  if (!this.fichier || this.chargement) {
-    return;
-  }
+  protected importer(): void {
+    const fichier = this.fichier();
+    if (!fichier || this.chargement()) {
+      return;
+    }
 
-  this.reinitialiserMessages();
-  this.chargement = true;
+    this.viderMessages();
+    this.chargement.set(true);
 
-  this.eleveService.importerCsv(this.fichier)
-    .pipe(
-      finalize(() => {
-        this.chargement = false;
-      })
-    )
-    .subscribe({
-      next: (reponse) => {
-        this.messageSucces = reponse || 'Importation réussie avec succès !';
-
-        this.fichier = null;
-        this.nomFichier = '';
-        this.apercu = [];
-        this.nombreLignes = 0;
+    this.eleveService.importerCsv(fichier).subscribe({
+      next: (rapport) => {
+        this.rapport.set(rapport);
+        this.chargement.set(false);
+        this.retirerFichier();
       },
-
-      error: (erreur: HttpErrorResponse) => {
-        const contenu = erreur.error;
-
-        if (Array.isArray(contenu)) {
-          this.erreurs = contenu.map(item => String(item));
-        } else if (typeof contenu === 'string') {
-          try {
-            const analyse = JSON.parse(contenu);
-            this.erreurs = Array.isArray(analyse)
-              ? analyse.map(item => String(item))
-              : [contenu];
-          } catch {
-            this.erreurs = [
-              contenu || 'Une erreur est survenue pendant l’importation.'
-            ];
-          }
-        } else {
-          this.erreurs = [
-            'Une erreur est survenue pendant l’importation.'
-          ];
-        }
-      }
+      error: (erreur) => {
+        this.erreurServeur.set(messageRefus(extraireProbleme(erreur)));
+        this.chargement.set(false);
+      },
     });
-}
-
-
-  protected reinitialiserMessages(): void {
-    this.messageSucces = '';
-    this.erreurs = [];
-    this.erreurFichier = '';
   }
 
-  protected reinitialiser(): void {
-    this.fichier = null;
-    this.nomFichier = '';
-    this.apercu = [];
-    this.nombreLignes = 0;
-    this.reinitialiserMessages();
+  protected retirer(): void {
+    this.lecture++;
+    this.viderMessages();
+    this.retirerFichier();
+  }
+
+  protected nouvelImport(): void {
+    this.retirer();
+  }
+
+  /** Génère le modèle côté client : l'en-tête exact et une ligne d'exemple. */
+  protected telechargerModele(): void {
+    const blob = new Blob([modeleCsv()], { type: 'text/csv;charset=utf-8' });
+    const adresse = URL.createObjectURL(blob);
+    const lien = this.document.createElement('a');
+
+    lien.href = adresse;
+    lien.download = NOM_MODELE;
+    lien.click();
+    URL.revokeObjectURL(adresse);
+  }
+
+  private refuser(message: string): void {
+    this.erreurFichier.set(message);
+    this.viderChamp();
+  }
+
+  private viderMessages(): void {
+    this.erreurFichier.set('');
+    this.erreurServeur.set('');
+    this.rapport.set(null);
+  }
+
+  private retirerFichier(): void {
+    this.fichier.set(null);
+    this.apercu.set([]);
+    this.nombreLignes.set(0);
+    this.viderChamp();
+  }
+
+  /** Sans cela, choisir de nouveau le même fichier ne déclenche aucun événement. */
+  private viderChamp(): void {
+    const champ = this.champ()?.nativeElement;
+    if (champ) {
+      champ.value = '';
+    }
   }
 }

@@ -1,0 +1,85 @@
+:host {
+  display: block;
+}
+
+.message {
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+
+  p {
+    margin: 5px 0 0;
+  }
+}
+
+.success {
+  border: 1px solid #ccebd9;
+  background: #effbf4;
+  color: #18794e;
+}
+
+.warning {
+  border: 1px solid #f1dfb4;
+  background: #fffaec;
+  color: #8a5a00;
+}
+
+.resume {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.rejets {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  background: white;
+  color: #53627b;
+
+  th,
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #edf0f5;
+    text-align: left;
+    font-size: 12px;
+  }
+
+  th {
+    color: #526582;
+    font-weight: 800;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.actions-rapport {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.btn-secondaire,
+.btn-lien {
+  padding: 9px 14px;
+  border: 1px solid #cbd7ec;
+  border-radius: 8px;
+  background: white;
+  color: #315dcc;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}

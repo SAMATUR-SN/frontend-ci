@@ -11,7 +11,7 @@ const LIBELLES: Record<StatutDossier, string> = {
 };
 
 /** Rôle qui saisit le passage VERS chaque étape (contrat, section 4). */
-const ROLE_REQUIS: Partial<Record<StatutDossier, Role>> = {
+const ROLES_PAR_ETAPE: Partial<Record<StatutDossier, Role>> = {
   CERTIFICAT_OBTENU: 'ETAT_CIVIL',
   DOSSIER_COMPLET: 'ECOLE',
   JUGEMENT_RENDU: 'TRIBUNAL',
@@ -37,5 +37,5 @@ export function etapeSuivante(etape: StatutDossier): StatutDossier | null {
 
 /** Rôle exigé pour passer à `etapeCible` ; null pour DETECTE, où l'on n'arrive jamais en avançant. */
 export function roleRequis(etapeCible: StatutDossier): Role | null {
-  return ROLE_REQUIS[etapeCible] ?? null;
+  return ROLES_PAR_ETAPE[etapeCible] ?? null;
 }

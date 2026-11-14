@@ -1,9 +1,5 @@
-import { Dossier } from './dossier.model';
-
-export interface Alerte {
-  id: number;
-  dossier: Dossier;
-  message: string;
-  dateAlerte: string;
-  resolue: boolean;
+/** Réponse de POST /api/alertes/verifier. */
+export interface VerificationAlertes {
+  /** Nombre de nouvelles alertes enregistrées (au plus une par dossier en retard). */
+  alertesCreees: number;
 }

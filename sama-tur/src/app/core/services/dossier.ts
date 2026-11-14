@@ -5,7 +5,6 @@ import { Observable } from 'rxjs';
 
 import {
   AvancerDossierRequest,
-  Dossier,
   DossierDetail,
   DossierResume,
   FiltreDossiers,
@@ -51,11 +50,6 @@ export class DossierService {
     }
 
     return this.http.get<Page<DossierResume>>(this.apiUrl, { params });
-  }
-
-  /** @deprecated Réponse paginée côté backend ; remplacée par lister (tableau de bord : bloc 3). */
-  getAll(): Observable<Dossier[]> {
-    return this.http.get<Dossier[]>(this.apiUrl);
   }
 
   /** GET /api/dossiers/{id} : le détail, historique compris (une seule requête). */

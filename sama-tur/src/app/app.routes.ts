@@ -6,6 +6,7 @@ import { Dashboard } from './features/dashboard/dashboard/dashboard';
 
 import { authGuard } from './core/guards/auth-guard';
 import { roleGuard } from './core/guards/role-guard';
+import { ROLES_ALERTES, ROLES_IMPORT } from './core/utils/acces';
 
 import { TestApi } from './features/eleves/test-api/test-api';
 
@@ -15,8 +16,6 @@ import { AjoutEleve } from './features/eleves/ajout-eleve/ajout-eleve';
 import { ImportEleves } from './features/eleves/import-eleves/import-eleves';
 
 import { ListeDossiers } from './features/dossiers/liste-dossiers/liste-dossiers';
-
-import { ListeAlertes } from './features/alertes/liste-alertes/liste-alertes';
 
 export const routes: Routes = [
 
@@ -63,7 +62,7 @@ export const routes: Routes = [
     component: ImportEleves,
     canActivate: [authGuard, roleGuard],
     data: {
-      roles: ['ECOLE']
+      roles: ROLES_IMPORT
     }
   },
 
@@ -91,14 +90,11 @@ export const routes: Routes = [
   // GESTION DES ALERTES
   {
     path: 'alertes',
-    component: ListeAlertes,
+    loadComponent: () =>
+      import('./features/alertes/liste-alertes/liste-alertes').then((m) => m.ListeAlertes),
     canActivate: [authGuard, roleGuard],
     data: {
-      roles: [
-        'ETAT_CIVIL',
-        'TRIBUNAL',
-        'SUPERVISEUR'
-      ]
+      roles: ROLES_ALERTES
     }
   },
 

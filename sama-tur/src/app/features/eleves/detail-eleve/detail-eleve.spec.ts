@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { DetailEleve } from './detail-eleve';
 
 describe('DetailEleve', () => {
@@ -8,6 +11,7 @@ describe('DetailEleve', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DetailEleve],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DetailEleve);

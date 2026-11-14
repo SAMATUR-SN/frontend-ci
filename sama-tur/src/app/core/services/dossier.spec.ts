@@ -1,12 +1,16 @@
 import { TestBed } from '@angular/core/testing';
-import { Dossier } from './dossier';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { DossierService } from './dossier';
 
-describe('Dossier', () => {
-  let service: Dossier;
+describe('DossierService', () => {
+  let service: DossierService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Dossier);
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(DossierService);
   });
 
   it('should be created', () => {

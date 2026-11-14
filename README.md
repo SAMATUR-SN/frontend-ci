@@ -83,7 +83,7 @@ sama-tur/src/app/
 │   ├── dashboard/           tableau de bord des indicateurs
 │   ├── dossiers/            liste, fiche, frise des étapes, panneau « Avancer »
 │   ├── alertes/             dossiers en retard
-│   └── eleves/              import CSV (+ écrans hérités, voir les limites)
+│   └── eleves/              import CSV et son résultat
 ├── app.routes.ts            routes et rôles autorisés
 └── app.config.ts            intercepteur, locale française
 ```
@@ -127,5 +127,5 @@ L'écran propose aussi **« Télécharger le modèle CSV »** : l'en-tête exact
 - **Pas de résolution des alertes.** L'API liste les dossiers en retard et ne donne aucun identifiant d'alerte : `PATCH /api/alertes/{id}/resoudre` n'est pas atteignable depuis l'interface. Une alerte disparaît quand le dossier avance.
 - **Pas de périmètre par structure.** Le backend ne filtre pas les dossiers par école, centre ou tribunal : tout rôle voit tous les dossiers.
 - **L'accès à `/alertes` est une commodité d'interface.** Le backend laisse `GET /api/alertes` ouvert à tout compte connecté.
-- **Écrans élèves hérités.** `/eleves`, `/eleves/nouveau` et `/eleves/:id` n'ont pas été réalignés sur le contrat de l'API et ne sont plus liés depuis le tableau de bord. L'API `/api/eleves*` est réservée à l'école (403 pour les autres rôles). À ne pas utiliser pour la recette ; seul l'import CSV est maintenu.
+- **Pas de gestion élève par élève.** L'interface n'offre que l'import CSV : créer, modifier ou archiver un seul élève (`GET`, `POST`, `PUT` et `DELETE /api/eleves`, facultatifs dans le contrat, réservés à l'école) n'est pas réalisé. Les anciens écrans `/eleves`, `/eleves/nouveau` et `/eleves/:id`, qui n'étaient pas alignés sur l'API, ont été retirés.
 - **Pas de test dans un navigateur.** Les écrans sont vérifiés par les tests et par des appels réels à l'API ; le rendu visuel reste à contrôler à l'œil.

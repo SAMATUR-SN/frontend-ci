@@ -129,3 +129,6 @@ L'écran propose aussi **« Télécharger le modèle CSV »** : l'en-tête exact
 - **L'accès à `/alertes` est une commodité d'interface.** Le backend laisse `GET /api/alertes` ouvert à tout compte connecté.
 - **Pas de gestion élève par élève.** L'interface n'offre que l'import CSV : créer, modifier ou archiver un seul élève (`GET`, `POST`, `PUT` et `DELETE /api/eleves`, facultatifs dans le contrat, réservés à l'école) n'est pas réalisé. Les anciens écrans `/eleves`, `/eleves/nouveau` et `/eleves/:id`, qui n'étaient pas alignés sur l'API, ont été retirés.
 - **Pas de test dans un navigateur.** Les écrans sont vérifiés par les tests et par des appels réels à l'API ; le rendu visuel reste à contrôler à l'œil.
+
+
+**Test 123**

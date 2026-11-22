@@ -115,7 +115,7 @@ pipeline {
                 // (--volumes-from) : le dossier du projet y est au même chemin.
                 withSonarQubeEnv(env.SONAR_SERVER) {
                     sh '''
-                        docker run --rm --volumes-from "$JENKINS_CONTAINER" -w "$WORKSPACE" \
+                        docker run --rm --network jenkins_default --volumes-from "$JENKINS_CONTAINER" -w "$WORKSPACE" \
                           -e SONAR_HOST_URL="$SONAR_HOST_URL" -e SONAR_TOKEN="$SONAR_AUTH_TOKEN" \
                           "$SCANNER_IMAGE" \
                           -Dsonar.projectKey="$SONAR_PROJECT" \
